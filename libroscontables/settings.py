@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'libros',
 ]
 
 MIDDLEWARE = [
@@ -74,10 +75,15 @@ WSGI_APPLICATION = 'libroscontables.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'Contabilidad',  # El nombre de la DB que creaste
+        'USER': 'postgres',         # Tu usuario de PostgreSQL (por defecto es 'postgres')
+        'PASSWORD': '1704', # La contraseña que pusiste al instalar PostgreSQL
+        'HOST': 'localhost',        # O la dirección IP si la DB está en otro servidor
+        'PORT': '5432',             # El puerto por defecto de PostgreSQL
     }
 }
+
 
 
 # Password validation
