@@ -26,16 +26,35 @@ def crear_asiento(request):
     return render(request, 'libros/crear_asiento.html', {'form': form})
 
 # Agrega esta nueva vista:
+from django.shortcuts import render
+from django.db import connection # ¡Asegúrate de importar 'connection'!
+# from .models import Cuenta # Ya no es necesario para esta vista específica
+
+# ... (tus otras vistas) ...
+
 def lista_cuentas(request):
-    # 1. Esta línea es el equivalente a tu SELECT * FROM libros_cuenta
-    cuentas = Cuenta.objects.all().order_by('codigo')
+    # Creamos una lista vacía para guardar los resultados
+    cuentas_list = []
 
-    # 2. Preparamos los datos para enviarlos a la plantilla
+    # Usamos una consulta SQL directa para evitar el ORM
+    with connection.cursor() as cursor:
+        # Ejecutamos tu consulta exacta
+        cursor.execute("SELECT codigo, nombre, nivel, elemento, rubro FROM public.libros_cuenta ORDER BY codigo")
+
+        # Recorremos cada fila que nos devuelve la base de datos
+        for row in cursor.fetchall():
+            # Creamos un diccionario para cada fila y lo agregamos a nuestra lista
+            cuentas_list.append({
+                'codigo': row[0],
+                'nombre': row[1],
+                'nivel':  row[2],
+                'elemento': row[3],
+                'rubro': row[4],
+            })
+
     context = {
-        'cuentas': cuentas
+        'cuentas': cuentas_list
     }
-
-    # 3. Renderizamos el HTML con los datos
     return render(request, 'libros/lista_cuentas.html', context)
 
 # Agrega esta nueva vista para el Libro Diario:
