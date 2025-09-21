@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Consultar Transacciones</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; }
+        .container { max-width: 900px; margin: auto; }
+        .search-form { background-color: #f2f2f2; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .search-form input { width: 98%; padding: 10px; margin-bottom: 10px; }
+        .search-form button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        a { color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Consultar Transacciones</h1>
+        <a href="{% url 'home' %}">Volver al Menú Principal</a>
+        <hr>
+
+        <div class="search-form">
+            <form method="post">
+                {% csrf_token %}
+                <label for="fecha_inicio">Buscar por Rango de Fechas:</label><br>
+                <input type="date" name="fecha_inicio">
+                <input type="date" name="fecha_fin">
+
+                <label for="descripcion">Buscar por Descripción:</label><br>
+                <input type="text" name="descripcion" placeholder="Ej: Venta de mercadería...">
+
+                <button type="submit">Buscar</button>
+            </form>
+        </div>
+
+        {% if asientos %}
+            <h2>Resultados de la Búsqueda</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>No. Asiento</th>
+                        <th>Descripción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asiento in asientos %}
+                        <tr>
+                            <td>{{ asiento.fecha|date:"d/m/Y" }}</td>
+                            <td>{{ asiento.numero_asiento }}</td>
+                            <td>{{ asiento.descripcion }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% elif request.method == 'POST' %}
+            <p>No se encontraron asientos que coincidan con los criterios de búsqueda.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
