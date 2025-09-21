@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <title>Catálogo de Cuentas</title>
     <style>
-        body { font-family: sans-serif; margin: 40px; }
-        .container { max-width: 900px; margin: auto; }
-        table { width: 100%; border-collapse: collapse; }
+        body { font-family: sans-serif; margin: 40px; background-color: #f9f9f9; }
+        .container { max-width: 1000px; margin: auto; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        thead { background-color: #f2f2f2; }
-        a { color: #007bff; }
+        thead { background-color: #007bff; color: white; }
+        tbody tr:nth-child(even) { background-color: #f2f2f2; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -21,8 +24,10 @@
             <thead>
                 <tr>
                     <th>Código</th>
-                    <th>Nombre de la Cuenta</th>
-                    <th>Código Padre</th>
+                    <th>Nombre</th>
+                    <th>Nivel</th>
+                    <th>Elemento</th>
+                    <th>Rubro</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,11 +35,13 @@
                     <tr>
                         <td>{{ cuenta.codigo }}</td>
                         <td>{{ cuenta.nombre }}</td>
-                        <td>{{ cuenta.codigo_padre.codigo|default:"--" }}</td>
+                        <td>{{ cuenta.nivel }}</td>
+                        <td>{{ cuenta.elemento }}</td>
+                        <td>{{ cuenta.rubro }}</td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="3">No hay cuentas registradas.</td>
+                        <td colspan="5">No hay cuentas registradas. Ve al <a href="/admin/">panel de administración</a> para agregarlas.</td>
                     </tr>
                 {% endfor %}
             </tbody>

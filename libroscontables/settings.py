@@ -76,7 +76,7 @@ WSGI_APPLICATION = 'libroscontables.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Contabilidad',  # El nombre de la DB que creaste
+        'NAME': 'libroscontables',  # El nombre de la DB que creaste
         'USER': 'postgres',         # Tu usuario de PostgreSQL (por defecto es 'postgres')
         'PASSWORD': '1704', # La contraseña que pusiste al instalar PostgreSQL
         'HOST': 'localhost',        # O la dirección IP si la DB está en otro servidor

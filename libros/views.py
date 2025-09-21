@@ -27,13 +27,15 @@ def crear_asiento(request):
 
 # Agrega esta nueva vista:
 def lista_cuentas(request):
-    # 1. Obtiene todos los objetos 'Cuenta' de la base de datos
-    cuentas = Cuenta.objects.all()
-    # 2. Pasa los datos a la plantilla a través de un diccionario de contexto
+    # 1. Esta línea es el equivalente a tu SELECT * FROM libros_cuenta
+    cuentas = Cuenta.objects.all().order_by('codigo')
+
+    # 2. Preparamos los datos para enviarlos a la plantilla
     context = {
         'cuentas': cuentas
     }
-    # 3. Renderiza el archivo HTML con los datos
+
+    # 3. Renderizamos el HTML con los datos
     return render(request, 'libros/lista_cuentas.html', context)
 
 # Agrega esta nueva vista para el Libro Diario:
