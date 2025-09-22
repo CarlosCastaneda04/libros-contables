@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Libro Mayor</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; }
+        .container { max-width: 900px; margin: auto; }
+        .cuenta-bloque { margin-bottom: 30px; border: 1px solid #007bff; border-radius: 5px; }
+        .cuenta-header { background-color: #007bff; color: white; padding: 10px; font-size: 1.2em; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-top: 1px solid #ddd; text-align: left; }
+        .numero { text-align: right; }
+        .saldo-final { font-weight: bold; text-align: right; padding: 10px; }
+        a { color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Libro Mayor</h1>
+        <a href="{% url 'home' %}">Volver al Menú Principal</a>
+        <hr>
+
+        {% for item in datos_mayor %}
+            <div class="cuenta-bloque">
+                <div class="cuenta-header">
+                    {{ item.cuenta.codigo }} - {{ item.cuenta.nombre }}
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Descripción</th>
+                            <th class="numero">Debe</th>
+                            <th class="numero">Haber</th>
+                            <th class="numero">Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in item.movimientos %}
+                            <tr>
+                                <td>{{ mov.fecha|date:"d/m/Y" }}</td>
+                                <td>{{ mov.descripcion }}</td>
+                                <td class="numero">${{ mov.debe }}</td>
+                                <td class="numero">${{ mov.haber }}</td>
+                                <td class="numero">${{ mov.saldo }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="saldo-final">
+                    Saldo Final: ${{ item.saldo_final }}
+                </div>
+            </div>
+        {% empty %}
+            <p>No hay cuentas con movimientos para mostrar.</p>
+        {% endfor %}
+
+    </div>
+</body>
+</html>
