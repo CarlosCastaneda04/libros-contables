@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Libro Diario</title>
+    <style>
+        /* ... (tus estilos anteriores) ... */
+        .report-table tfoot td { font-weight: bold; border-top: 2px solid #000; background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ empresa.nombre|default:"Nombre de Empresa no Definido" }}</h1>
+            <h2>Libro de Diario</h2>
+        </div>
+        <a class="nav-link" href="{% url 'home' %}">Volver al Menú Principal</a>
+
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Numero</th>
+                    <th>Codigo</th>
+                    <th>Descripcion</th>
+                    <th class="numero">Debe</th>
+                    <th class="numero">Haber</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for asiento in asientos %}
+                    <tr class="asiento-header-row">
+                        <td>{{ asiento.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ asiento.numero_asiento }}</td>
+                        <td colspan="4">{{ asiento.descripcion }}</td>
+                    </tr>
+                    {% for movimiento in asiento.movimientos.all %}
+                        <tr class="movimiento-row">
+                            <td colspan="2"></td>
+                            <td>{{ movimiento.cuenta.codigo }}</td>
+                            <td>{{ movimiento.cuenta.nombre }}</td>
+                            <td class="numero">${{ movimiento.debe|floatformat:2 }}</td>
+                            <td class="numero">${{ movimiento.haber|floatformat:2 }}</td>
+                        </tr>
+                    {% endfor %}
+                {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center;">No hay asientos registrados para mostrar.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" style="text-align: right;">SUMAS IGUALES:</td>
+                    <td class="numero">${{ gran_total_debe|floatformat:2 }}</td>
+                    <td class="numero">${{ gran_total_haber|floatformat:2 }}</td>
+                </tr>
+            </tfoot>
+            </table>
+    </div>
+</body>
+</html>

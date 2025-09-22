@@ -3,8 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Ingresar Nuevo Asiento</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; }
+        .autocomplete-container { position: relative; }
+        .autocomplete-suggestions {
+            position: absolute;
+            border: 1px solid #ddd;
+            background-color: white;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 99;
+            width: 100%;
+        }
+        .autocomplete-suggestions div { padding: 8px; cursor: pointer; }
+        .autocomplete-suggestions div:hover { background-color: #f2f2f2; }
+    </style>
 </head>
 <body>
+            <a class="nav-link" href="{% url 'home' %}">Volver al Menú Principal</a>
     <h1>Ingresar Nuevo Asiento Contable</h1>
     <form method="post" id="asientoForm">
         {% csrf_token %}
@@ -14,7 +30,7 @@
 
         <hr>
         <h2>Movimientos Contables</h2>
-        <table id="tablaMovimientos">
+        <table id="tablaMovimientos" data-buscar-url="{% url 'buscar_cuentas' %}">
             <thead>
                 <tr>
                     <th>Cuenta</th>
@@ -40,64 +56,93 @@
         const tablaBody = document.querySelector('#tablaMovimientos tbody');
         const errorMensaje = document.getElementById('errorMensaje');
 
-        // Función para verificar si el botón de guardar debe estar activo
         function validarFormulario() {
-            if (tablaBody.rows.length > 0) {
-                guardarBoton.disabled = false;
-                errorMensaje.style.display = 'none';
-            } else {
-                guardarBoton.disabled = true;
-            }
+            guardarBoton.disabled = tablaBody.rows.length === 0;
         }
 
         agregarFilaBoton.addEventListener('click', function() {
             const numFila = tablaBody.rows.length;
             const nuevaFila = tablaBody.insertRow();
             
-            // ... (El código para crear las celdas y los inputs es el mismo de antes) ...
-            // Celda Cuenta
+            // --- Celda Cuenta (con autocompletado) ---
             const celdaCuenta = nuevaFila.insertCell();
-            celdaCuenta.innerHTML = `<input name="movimientos-${numFila}-cuenta" placeholder="Código de cuenta" required>`;
+            celdaCuenta.classList.add('autocomplete-container');
+            
+            const inputVisible = document.createElement('input');
+            inputVisible.placeholder = 'Código o nombre de cuenta';
+            inputVisible.classList.add('cuenta-autocomplete');
+            inputVisible.required = true;
 
-            // Celda Debe
+            const inputOculto = document.createElement('input');
+            inputOculto.type = 'hidden';
+            inputOculto.name = `movimientos-${numFila}-cuenta`;
+            
+            const suggestionsDiv = document.createElement('div');
+            suggestionsDiv.classList.add('autocomplete-suggestions');
+
+            celdaCuenta.appendChild(inputVisible);
+            celdaCuenta.appendChild(inputOculto);
+            celdaCuenta.appendChild(suggestionsDiv);
+
+            inputVisible.addEventListener('input', async function() {
+                const term = this.value;
+                suggestionsDiv.innerHTML = '';
+                if (term.length < 2) return;
+
+                // CAMBIO 2: El JavaScript ahora lee la URL desde la tabla
+                const tabla = document.getElementById('tablaMovimientos');
+                const buscarUrl = tabla.dataset.buscarUrl;
+                const response = await fetch(`${buscarUrl}?term=${term}`);
+                const data = await response.json();
+
+                data.forEach(cuenta => {
+                    const suggestion = document.createElement('div');
+                    suggestion.textContent = cuenta.text;
+                    suggestion.addEventListener('click', function() {
+                        inputVisible.value = cuenta.text;
+                        inputOculto.value = cuenta.id;
+                        suggestionsDiv.innerHTML = '';
+                    });
+                    suggestionsDiv.appendChild(suggestion);
+                });
+            });
+            
+            // --- Celdas Debe y Haber ---
             const celdaDebe = nuevaFila.insertCell();
             const inputDebe = document.createElement('input');
             inputDebe.type = 'number'; inputDebe.step = '0.01'; inputDebe.name = `movimientos-${numFila}-debe`; inputDebe.value = '0';
             
-            // Celda Haber
             const celdaHaber = nuevaFila.insertCell();
             const inputHaber = document.createElement('input');
             inputHaber.type = 'number'; inputHaber.step = '0.01'; inputHaber.name = `movimientos-${numFila}-haber`; inputHaber.value = '0';
-
-            // Lógica de bloqueo
-            inputDebe.addEventListener('input', function() { /* ... */ });
-            inputHaber.addEventListener('input', function() { /* ... */ });
+            
+            inputDebe.addEventListener('input', function() { if (this.value && parseFloat(this.value) > 0) { inputHaber.disabled = true; inputHaber.value = '0'; } else { inputHaber.disabled = false; } });
+            inputHaber.addEventListener('input', function() { if (this.value && parseFloat(this.value) > 0) { inputDebe.disabled = true; inputDebe.value = '0'; } else { inputDebe.disabled = false; } });
 
             celdaDebe.appendChild(inputDebe);
             celdaHaber.appendChild(inputHaber);
             
-            // Celda Acción
+            // --- Celda Acción ---
             const celdaAccion = nuevaFila.insertCell();
-            celdaAccion.innerHTML = `<button type="button" onclick="eliminarFila(this)">Eliminar</button>`;
+            celdaAccion.innerHTML = '<button type="button" onclick="eliminarFila(this)">Eliminar</button>';
             
-            validarFormulario(); // Llama a la validación después de agregar una fila
+            validarFormulario();
         });
 
         function eliminarFila(boton) {
-            const fila = boton.parentNode.parentNode;
-            fila.parentNode.removeChild(fila);
-            validarFormulario(); // Llama a la validación después de eliminar una fila
+            boton.closest('tr').remove();
+            validarFormulario();
         }
 
-        // Validación al enviar el formulario
         form.addEventListener('submit', function(event) {
             if (tablaBody.rows.length === 0) {
-                event.preventDefault(); // Detiene el envío del formulario
+                event.preventDefault();
                 errorMensaje.style.display = 'block';
+            } else {
+                errorMensaje.style.display = 'none';
             }
         });
         
-        // Ejecuta la validación al cargar la página por si acaso
         validarFormulario();
     </script>
 </body>

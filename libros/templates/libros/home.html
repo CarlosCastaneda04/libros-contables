@@ -11,6 +11,11 @@
         .menu li { margin-bottom: 15px; }
         .menu a { text-decoration: none; background-color: #007bff; color: white; padding: 15px; display: block; border-radius: 5px; text-align: center; font-size: 1.2em; transition: background-color 0.3s; }
         .menu a:hover { background-color: #0056b3; }
+        /* Estilos para el nuevo formulario */
+        .report-form { border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #f9f9f9; }
+        .report-form label { display: block; margin-bottom: 10px; font-weight: bold; }
+        .report-form select { width: 100%; padding: 8px; margin-bottom: 10px; }
+        .report-form button { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; }
     </style>
 </head>
 <body>
@@ -19,10 +24,38 @@
         <ul class="menu">
             <li><a href="{% url 'crear_asiento' %}">1. Ingresar Nuevo Asiento Contable</a></li>
             <li><a href="{% url 'lista_cuentas' %}">2. Verificar Catálogo de Cuentas</a></li>
-            <li><a href="{% url 'libro_diario' %}">3. Generar Libro Diario</a></li>
+            
+            <li>
+                <div class="report-form">
+                    <form id="formLibroDiario">
+                        <label for="empresa-select-diario">3. Generar Libro Diario</label>
+                        <select name="empresa" id="empresa-select-diario">
+                            {% for empresa in empresas %}
+                                <option value="{{ empresa.id }}">{{ empresa.nombre }}</option>
+                            {% empty %}
+                                <option disabled>No hay empresas registradas</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit">Generar Reporte</button>
+                    </form>
+                </div>
+            </li>
             <li><a href="{% url 'libro_mayor' %}">4. Generar Libro Mayor</a></li>
             <li><a href="{% url 'consultas' %}">5. Consultar Transacciones</a></li>
         </ul>
     </div>
+
+    <script>
+        document.getElementById('formLibroDiario').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevenimos el envío normal
+            const empresaId = document.getElementById('empresa-select-diario').value;
+            if (empresaId) {
+                // Construimos la URL y redirigimos
+                window.location.href = `/libro-diario/${empresaId}/`;
+            } else {
+                alert("Por favor, seleccione una empresa.");
+            }
+        });
+    </script>
 </body>
 </html>

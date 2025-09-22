@@ -51,7 +51,7 @@ class AsientoDiario(models.Model):
 class MovimientoContable(models.Model):
     # El 'id' se crea automáticamente.
     asiento_diario = models.ForeignKey(AsientoDiario, on_delete=models.CASCADE, related_name='movimientos')
-    cuenta = models.ForeignKey(Cuenta, to_field='codigo', on_delete=models.PROTECT)
+    cuenta = models.ForeignKey(Cuenta, to_field='codigo', on_delete=models.PROTECT, db_column='cuenta_codigo')
     debe = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     haber = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 

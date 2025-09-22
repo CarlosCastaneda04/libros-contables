@@ -1,30 +1,78 @@
 # libros/views.py
 from django.shortcuts import render, redirect
+from django.db import transaction # Importamos transaction para seguridad
+from django.http import JsonResponse
+from django.db.models import Q
 from .forms import AsientoDiarioForm
+from django.db.models import Sum
 # Aún no usaremos los otros modelos aquí, pero los necesitaremos pronto
-from .models import MovimientoContable, Cuenta, AsientoDiario
+from .models import MovimientoContable, Cuenta, AsientoDiario, Empresa
 
 def home(request):
-    # Esta vista por ahora solo muestra la página.
-    # En el futuro, aquí puedes agregar lógica para mostrar resúmenes o estadísticas.
-    return render(request, 'libros/home.html')
+    # Obtenemos todas las empresas de la base de datos
+    empresas = Empresa.objects.all()
+    context = {
+        'empresas': empresas
+    }
+    return render(request, 'libros/home.html', context)
 
+def buscar_cuentas(request):
+    # Obtenemos el término de búsqueda que nos envía el JavaScript
+    term = request.GET.get('term', '')
+    # Filtramos las cuentas
+    cuentas = Cuenta.objects.filter(
+        Q(codigo__istartswith=term) | Q(nombre__icontains=term)
+    )[:10] # Usamos Q para buscar por código O por nombre. Limitamos a 10 resultados.
+
+    resultados = []
+    for cuenta in cuentas:
+        resultados.append({
+            'id': cuenta.codigo, # El valor que se guardará
+            'text': f"{cuenta.codigo} - {cuenta.nombre}" # El texto que verá el usuario
+        })
+
+    return JsonResponse(resultados, safe=False)
+
+@transaction.atomic # Esto asegura que todo se guarde correctamente, o no se guarda nada.
 def crear_asiento(request):
     if request.method == 'POST':
-        # Si el formulario fue enviado...
         form = AsientoDiarioForm(request.POST)
         if form.is_valid():
-            # Si los datos son válidos, guarda el AsientoDiario
+            # Primero, guarda el encabezado para obtener el objeto 'asiento'
             asiento = form.save()
-            # Aquí iría la lógica para guardar los MovimientoContable
-            # Por ahora, solo redirigimos a otra página (que crearemos después)
-            return redirect('home') # 'home' será el nombre de nuestra página principal
+
+            # --- INICIO DE LA NUEVA LÓGICA ---
+            # Ahora, procesamos los movimientos que vienen del formulario.
+            # Buscamos en los datos enviados todos los que empiezan con 'movimientos-'
+            indices = set()
+            for key in request.POST:
+                if key.startswith('movimientos-'):
+                    # Extraemos el número de la fila (ej. el '0' de 'movimientos-0-cuenta')
+                    indices.add(key.split('-')[1])
+
+            for i in sorted(indices, key=int):
+                cuenta_codigo = request.POST.get(f'movimientos-{i}-cuenta')
+                debe = request.POST.get(f'movimientos-{i}-debe', 0)
+                haber = request.POST.get(f'movimientos-{i}-haber', 0)
+
+                # Solo creamos el movimiento si hay un código de cuenta y algún monto
+                if cuenta_codigo and (float(debe) > 0 or float(haber) > 0):
+                    cuenta_obj = Cuenta.objects.get(pk=cuenta_codigo)
+                    MovimientoContable.objects.create(
+                        asiento_diario=asiento,
+                        cuenta=cuenta_obj,
+                        debe=debe,
+                        haber=haber
+                    )
+            # --- FIN DE LA NUEVA LÓGICA ---
+
+            # Redirigimos al libro diario para ver el resultado inmediatamente
+            return redirect('libro_diario')
     else:
-        # Si se accede a la página por primera vez, muestra un formulario vacío
         form = AsientoDiarioForm()
 
+    # El nombre de la plantilla debe ser correcto
     return render(request, 'libros/crear_asiento.html', {'form': form})
-
 # Agrega esta nueva vista:
 from django.shortcuts import render
 from django.db import connection # ¡Asegúrate de importar 'connection'!
@@ -58,14 +106,28 @@ def lista_cuentas(request):
     return render(request, 'libros/lista_cuentas.html', context)
 
 # Agrega esta nueva vista para el Libro Diario:
-def libro_diario(request):
-    # 1. Obtiene todos los asientos, ordenados por fecha.
-    # El prefetch_related('movimientos__cuenta') es una optimización para
-    # cargar todos los datos relacionados de una sola vez.
-    asientos = AsientoDiario.objects.prefetch_related('movimientos__cuenta').order_by('fecha')
+def libro_diario(request, empresa_id):
+    try:
+        empresa = Empresa.objects.get(pk=empresa_id)
+    except Empresa.DoesNotExist:
+        return redirect('home')
+
+    # Obtenemos los asientos de la empresa seleccionada
+    asientos = AsientoDiario.objects.filter(empresa=empresa).order_by('fecha').prefetch_related('movimientos__cuenta')
+
+    # --- INICIO DE LA NUEVA LÓGICA ---
+    # Calculamos el total general de todos los movimientos de estos asientos
+    gran_total = MovimientoContable.objects.filter(asiento_diario__in=asientos).aggregate(
+        total_debe=Sum('debe'),
+        total_haber=Sum('haber')
+    )
+    # --- FIN DE LA NUEVA LÓGICA ---
 
     context = {
-        'asientos': asientos
+        'asientos': asientos,
+        'empresa': empresa,
+        'gran_total_debe': gran_total['total_debe'] or 0,
+        'gran_total_haber': gran_total['total_haber'] or 0
     }
     return render(request, 'libros/libro_diario.html', context)
 
