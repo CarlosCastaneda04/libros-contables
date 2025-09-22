@@ -4,8 +4,29 @@
     <meta charset="UTF-8">
     <title>Libro Diario</title>
     <style>
-        /* ... (tus estilos anteriores) ... */
+        body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+        .container { max-width: 1000px; margin: auto; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .header h2 { margin: 5px 0; font-size: 20px; font-weight: normal; }
+        .report-table { width: 100%; border-collapse: collapse; }
+        .report-table th, .report-table td { padding: 8px; text-align: left; vertical-align: top; }
+        .report-table thead { border-top: 2px solid #000; border-bottom: 2px solid #000; }
+        .asiento-header-row td { font-weight: bold; background-color: #f2f2f2; border-top: 1px solid #aaa; }
+        .movimiento-row td { border-bottom: 1px solid #eee; }
+        .descripcion-row td { font-style: italic; color: #555; padding-left: 40px; border-bottom: 1px solid #ccc; }
+        .numero { text-align: right; }
+        .nav-link { display: inline-block; margin-bottom: 20px; color: #007bff; }
         .report-table tfoot td { font-weight: bold; border-top: 2px solid #000; background-color: #f2f2f2; }
+
+        /* --- NUEVOS ESTILOS PARA LAS COLUMNAS --- */
+        .col-fecha { width: 10%; }
+        .col-numero { width: 10%; }
+        .col-codigo { width: 10%; }
+        .col-descripcion { width: 40%; }
+        .col-debe { width: 15%; }
+        .col-haber { width: 15%; }
+
     </style>
 </head>
 <body>
@@ -19,12 +40,12 @@
         <table class="report-table">
             <thead>
                 <tr>
-                    <th>Fecha</th>
-                    <th>Numero</th>
-                    <th>Codigo</th>
-                    <th>Descripcion</th>
-                    <th class="numero">Debe</th>
-                    <th class="numero">Haber</th>
+                    <th class="col-fecha">Fecha</th>
+                    <th class="col-numero">Numero</th>
+                    <th class="col-codigo">Codigo</th>
+                    <th class="col-descripcion">Descripcion</th>
+                    <th class="col-debe numero">Debe</th>
+                    <th class="col-haber numero">Haber</th>
                 </tr>
             </thead>
             <tbody>
@@ -32,7 +53,7 @@
                     <tr class="asiento-header-row">
                         <td>{{ asiento.fecha|date:"d/m/Y" }}</td>
                         <td>{{ asiento.numero_asiento }}</td>
-                        <td colspan="4">{{ asiento.descripcion }}</td>
+                        <td colspan="4"><strong>{{ asiento.descripcion }}</strong></td>
                     </tr>
                     {% for movimiento in asiento.movimientos.all %}
                         <tr class="movimiento-row">
@@ -56,7 +77,7 @@
                     <td class="numero">${{ gran_total_haber|floatformat:2 }}</td>
                 </tr>
             </tfoot>
-            </table>
+        </table>
     </div>
 </body>
 </html>
