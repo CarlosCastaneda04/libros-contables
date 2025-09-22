@@ -32,7 +32,7 @@ class Cuenta(models.Model):
 # 3. Modelo para la tabla 'AsientoDiario'
 class AsientoDiario(models.Model):
     # El 'id' se crea automáticamente.
-    numero_asiento = models.CharField(max_length=50, unique=True)
+    numero_asiento = models.CharField(max_length=50)
     fecha = models.DateField()
     descripcion = models.TextField()
     # Django maneja el '_id' automáticamente al crear la relación.
@@ -46,6 +46,8 @@ class AsientoDiario(models.Model):
         # Nombres para el panel de admin de Django.
         verbose_name = "Asiento de Diario"
         verbose_name_plural = "Asientos de Diario"
+        ordering = ['-fecha', '-numero_asiento']
+        unique_together = ['empresa', 'numero_asiento']
 
 # 4. Modelo para la tabla 'MovimientoContable'
 class MovimientoContable(models.Model):

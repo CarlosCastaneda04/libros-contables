@@ -25,10 +25,24 @@
     <h1>Ingresar Nuevo Asiento Contable</h1>
     <form method="post" id="asientoForm">
         {% csrf_token %}
-        
+        {{ form.errors }}
         <h2>Datos del Asiento</h2>
-        {{ form.as_p }}
-
+        <p>
+            <label for="{{ form.empresa.id_for_label }}">Empresa:</label>
+            {{ form.empresa }}
+        </p>
+        <p>
+            <label for="{{ form.numero_asiento.id_for_label }}">Numero asiento:</label>
+            {{ form.numero_asiento }}
+        </p>
+        <p>
+            <label for="{{ form.fecha.id_for_label }}">Fecha:</label>
+            {{ form.fecha }}
+        </p>
+        <p>
+            <label for="{{ form.descripcion.id_for_label }}">Descripcion:</label>
+            {{ form.descripcion }}
+        </p>
         <hr>
         <h2>Movimientos Contables</h2>
         <table id="tablaMovimientos" data-buscar-url="{% url 'buscar_cuentas' %}">
@@ -53,9 +67,29 @@
 
         <hr>
         <button type="submit" id="guardarBoton" disabled>Guardar Asiento Completo</button>
+        <p id="errorMensaje" style="color: red; display: none;">Debe agregar al menos un movimiento contable.</p>
     </form>
 
     <script>
+        // --- CAMBIO 2: Se agrega este nuevo bloque para el correlativo ---
+        const empresaSelect = document.getElementById('id_empresa');
+        const numeroAsientoInput = document.getElementById('id_numero_asiento');
+
+        async function actualizarNumeroAsiento() {
+            const empresaId = empresaSelect.value;
+            if (empresaId) {
+                const response = await fetch(`/siguiente-asiento/${empresaId}/`);
+                const data = await response.json();
+                numeroAsientoInput.value = data.siguiente_numero;
+            } else {
+                numeroAsientoInput.value = '';
+            }
+        }
+        empresaSelect.addEventListener('change', actualizarNumeroAsiento);
+        document.addEventListener('DOMContentLoaded', actualizarNumeroAsiento);
+        // --- FIN DEL CAMBIO 2 ---
+
+        // --- TU CÓDIGO ANTERIOR (INTACTO) ---
         const form = document.getElementById('asientoForm');
         const agregarFilaBoton = document.getElementById('agregarFila');
         const guardarBoton = document.getElementById('guardarBoton');
@@ -94,7 +128,6 @@
             const numFila = tablaBody.rows.length;
             const nuevaFila = tablaBody.insertRow();
             
-            // --- Celda Cuenta (con autocompletado) ---
             const celdaCuenta = nuevaFila.insertCell();
             celdaCuenta.classList.add('autocomplete-container');
             const inputVisible = document.createElement('input');
@@ -110,7 +143,6 @@
             celdaCuenta.appendChild(inputOculto);
             celdaCuenta.appendChild(suggestionsDiv);
 
-            // --- LÓGICA DE AUTOCOMPLETADO RESTAURADA ---
             inputVisible.addEventListener('input', async function() {
                 const term = this.value;
                 suggestionsDiv.innerHTML = '';
@@ -133,10 +165,10 @@
                 });
             });
             
-            // --- Celdas Debe y Haber ---
             const celdaDebe = nuevaFila.insertCell();
             const inputDebe = document.createElement('input');
             inputDebe.type = 'number'; inputDebe.step = '0.01'; inputDebe.name = `movimientos-${numFila}-debe`; inputDebe.value = '0';
+            
             const celdaHaber = nuevaFila.insertCell();
             const inputHaber = document.createElement('input');
             inputHaber.type = 'number'; inputHaber.step = '0.01'; inputHaber.name = `movimientos-${numFila}-haber`; inputHaber.value = '0';
@@ -147,7 +179,6 @@
             celdaDebe.appendChild(inputDebe);
             celdaHaber.appendChild(inputHaber);
             
-            // --- Celda Acción ---
             const celdaAccion = nuevaFila.insertCell();
             celdaAccion.innerHTML = '<button type="button" onclick="eliminarFila(this)">Eliminar</button>';
             
@@ -159,7 +190,15 @@
             calcularTotales();
         }
         
-        // Ejecuta la validación inicial
+        form.addEventListener('submit', function(event) {
+            if (tablaBody.rows.length === 0) {
+                event.preventDefault();
+                errorMensaje.style.display = 'block';
+            } else {
+                errorMensaje.style.display = 'none';
+            }
+        });
+        
         calcularTotales();
     </script>
 </body>
