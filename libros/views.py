@@ -33,21 +33,24 @@ def buscar_cuentas(request):
 
     return JsonResponse(resultados, safe=False)
 
-@transaction.atomic # Esto asegura que todo se guarde correctamente, o no se guarda nada.
+# libros/views.py
+from django.shortcuts import render, redirect
+from django.db import transaction
+from .forms import AsientoDiarioForm
+from .models import MovimientoContable, Cuenta, AsientoDiario
+
+@transaction.atomic
 def crear_asiento(request):
     if request.method == 'POST':
         form = AsientoDiarioForm(request.POST)
         if form.is_valid():
-            # Primero, guarda el encabezado para obtener el objeto 'asiento'
+            # Se crea el objeto 'asiento' aquí
             asiento = form.save()
 
-            # --- INICIO DE LA NUEVA LÓGICA ---
-            # Ahora, procesamos los movimientos que vienen del formulario.
-            # Buscamos en los datos enviados todos los que empiezan con 'movimientos-'
+            # Lógica para guardar los movimientos
             indices = set()
             for key in request.POST:
                 if key.startswith('movimientos-'):
-                    # Extraemos el número de la fila (ej. el '0' de 'movimientos-0-cuenta')
                     indices.add(key.split('-')[1])
 
             for i in sorted(indices, key=int):
@@ -55,7 +58,6 @@ def crear_asiento(request):
                 debe = request.POST.get(f'movimientos-{i}-debe', 0)
                 haber = request.POST.get(f'movimientos-{i}-haber', 0)
 
-                # Solo creamos el movimiento si hay un código de cuenta y algún monto
                 if cuenta_codigo and (float(debe) > 0 or float(haber) > 0):
                     cuenta_obj = Cuenta.objects.get(pk=cuenta_codigo)
                     MovimientoContable.objects.create(
@@ -64,14 +66,16 @@ def crear_asiento(request):
                         debe=debe,
                         haber=haber
                     )
-            # --- FIN DE LA NUEVA LÓGICA ---
-
-            # Redirigimos al libro diario para ver el resultado inmediatamente
-            return redirect('libro_diario')
+            
+            # La redirección va aquí, DENTRO del if form.is_valid(),
+            # porque solo aquí estamos seguros de que 'asiento' existe.
+            return redirect('libro_diario', empresa_id=asiento.empresa.id)
     else:
+        # Esto es para cuando se carga la página por primera vez (GET)
         form = AsientoDiarioForm()
 
-    # El nombre de la plantilla debe ser correcto
+    # Si el método es POST pero el form NO es válido, se vuelve a mostrar el
+    # formulario con los errores. También se usa para la carga inicial (GET).
     return render(request, 'libros/crear_asiento.html', {'form': form})
 # Agrega esta nueva vista:
 from django.shortcuts import render

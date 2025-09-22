@@ -7,20 +7,21 @@
         body { font-family: sans-serif; margin: 40px; }
         .autocomplete-container { position: relative; }
         .autocomplete-suggestions {
-            position: absolute;
-            border: 1px solid #ddd;
-            background-color: white;
-            max-height: 150px;
-            overflow-y: auto;
-            z-index: 99;
-            width: 100%;
+            position: absolute; border: 1px solid #ddd; background-color: white;
+            max-height: 150px; overflow-y: auto; z-index: 99; width: 100%;
         }
         .autocomplete-suggestions div { padding: 8px; cursor: pointer; }
         .autocomplete-suggestions div:hover { background-color: #f2f2f2; }
+        .totals-container {
+            margin-top: 20px; padding: 15px; background-color: #f2f2f2;
+            border-radius: 5px; text-align: right; font-size: 1.2em; font-weight: bold;
+        }
+        .totals-balanced { color: green; }
+        .totals-unbalanced { color: red; }
     </style>
 </head>
 <body>
-            <a class="nav-link" href="{% url 'home' %}">Volver al Menú Principal</a>
+    <a class="nav-link" href="{% url 'home' %}">Volver al Menú Principal</a>
     <h1>Ingresar Nuevo Asiento Contable</h1>
     <form method="post" id="asientoForm">
         {% csrf_token %}
@@ -40,13 +41,18 @@
                 </tr>
             </thead>
             <tbody>
-                </tbody>
+            </tbody>
         </table>
         <button type="button" id="agregarFila">Agregar Movimiento</button>
 
+        <div class="totals-container">
+            Total Debe: <span id="total-debe">$0.00</span><br>
+            Total Haber: <span id="total-haber">$0.00</span><br>
+            <span id="balance-status" class="totals-unbalanced">DESBALANCEADO</span>
+        </div>
+
         <hr>
         <button type="submit" id="guardarBoton" disabled>Guardar Asiento Completo</button>
-        <p id="errorMensaje" style="color: red; display: none;">Debe agregar al menos un movimiento contable.</p>
     </form>
 
     <script>
@@ -54,10 +60,34 @@
         const agregarFilaBoton = document.getElementById('agregarFila');
         const guardarBoton = document.getElementById('guardarBoton');
         const tablaBody = document.querySelector('#tablaMovimientos tbody');
-        const errorMensaje = document.getElementById('errorMensaje');
+        const totalDebeSpan = document.getElementById('total-debe');
+        const totalHaberSpan = document.getElementById('total-haber');
+        const balanceStatusSpan = document.getElementById('balance-status');
 
-        function validarFormulario() {
-            guardarBoton.disabled = tablaBody.rows.length === 0;
+        function calcularTotales() {
+            let totalDebe = 0;
+            let totalHaber = 0;
+            const filas = tablaBody.querySelectorAll('tr');
+
+            filas.forEach(fila => {
+                const debeInput = fila.querySelector('input[name*="-debe"]');
+                const haberInput = fila.querySelector('input[name*="-haber"]');
+                if (debeInput && debeInput.value) totalDebe += parseFloat(debeInput.value);
+                if (haberInput && haberInput.value) totalHaber += parseFloat(haberInput.value);
+            });
+
+            totalDebeSpan.textContent = `$${totalDebe.toFixed(2)}`;
+            totalHaberSpan.textContent = `$${totalHaber.toFixed(2)}`;
+
+            if (totalDebe > 0 && totalDebe === totalHaber) {
+                balanceStatusSpan.textContent = 'BALANCEADO';
+                balanceStatusSpan.className = 'totals-balanced';
+                guardarBoton.disabled = false;
+            } else {
+                balanceStatusSpan.textContent = 'DESBALANCEADO';
+                balanceStatusSpan.className = 'totals-unbalanced';
+                guardarBoton.disabled = true;
+            }
         }
 
         agregarFilaBoton.addEventListener('click', function() {
@@ -67,29 +97,25 @@
             // --- Celda Cuenta (con autocompletado) ---
             const celdaCuenta = nuevaFila.insertCell();
             celdaCuenta.classList.add('autocomplete-container');
-            
             const inputVisible = document.createElement('input');
             inputVisible.placeholder = 'Código o nombre de cuenta';
             inputVisible.classList.add('cuenta-autocomplete');
             inputVisible.required = true;
-
             const inputOculto = document.createElement('input');
             inputOculto.type = 'hidden';
             inputOculto.name = `movimientos-${numFila}-cuenta`;
-            
             const suggestionsDiv = document.createElement('div');
             suggestionsDiv.classList.add('autocomplete-suggestions');
-
             celdaCuenta.appendChild(inputVisible);
             celdaCuenta.appendChild(inputOculto);
             celdaCuenta.appendChild(suggestionsDiv);
 
+            // --- LÓGICA DE AUTOCOMPLETADO RESTAURADA ---
             inputVisible.addEventListener('input', async function() {
                 const term = this.value;
                 suggestionsDiv.innerHTML = '';
                 if (term.length < 2) return;
 
-                // CAMBIO 2: El JavaScript ahora lee la URL desde la tabla
                 const tabla = document.getElementById('tablaMovimientos');
                 const buscarUrl = tabla.dataset.buscarUrl;
                 const response = await fetch(`${buscarUrl}?term=${term}`);
@@ -111,13 +137,12 @@
             const celdaDebe = nuevaFila.insertCell();
             const inputDebe = document.createElement('input');
             inputDebe.type = 'number'; inputDebe.step = '0.01'; inputDebe.name = `movimientos-${numFila}-debe`; inputDebe.value = '0';
-            
             const celdaHaber = nuevaFila.insertCell();
             const inputHaber = document.createElement('input');
             inputHaber.type = 'number'; inputHaber.step = '0.01'; inputHaber.name = `movimientos-${numFila}-haber`; inputHaber.value = '0';
             
-            inputDebe.addEventListener('input', function() { if (this.value && parseFloat(this.value) > 0) { inputHaber.disabled = true; inputHaber.value = '0'; } else { inputHaber.disabled = false; } });
-            inputHaber.addEventListener('input', function() { if (this.value && parseFloat(this.value) > 0) { inputDebe.disabled = true; inputDebe.value = '0'; } else { inputDebe.disabled = false; } });
+            inputDebe.addEventListener('input', function() { if (this.value && parseFloat(this.value) > 0) { inputHaber.disabled = true; inputHaber.value = '0'; } else { inputHaber.disabled = false; } calcularTotales(); });
+            inputHaber.addEventListener('input', function() { if (this.value && parseFloat(this.value) > 0) { inputDebe.disabled = true; inputDebe.value = '0'; } else { inputDebe.disabled = false; } calcularTotales(); });
 
             celdaDebe.appendChild(inputDebe);
             celdaHaber.appendChild(inputHaber);
@@ -126,24 +151,16 @@
             const celdaAccion = nuevaFila.insertCell();
             celdaAccion.innerHTML = '<button type="button" onclick="eliminarFila(this)">Eliminar</button>';
             
-            validarFormulario();
+            calcularTotales();
         });
 
         function eliminarFila(boton) {
             boton.closest('tr').remove();
-            validarFormulario();
+            calcularTotales();
         }
-
-        form.addEventListener('submit', function(event) {
-            if (tablaBody.rows.length === 0) {
-                event.preventDefault();
-                errorMensaje.style.display = 'block';
-            } else {
-                errorMensaje.style.display = 'none';
-            }
-        });
         
-        validarFormulario();
+        // Ejecuta la validación inicial
+        calcularTotales();
     </script>
 </body>
 </html>
