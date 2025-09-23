@@ -18,7 +18,6 @@ urlpatterns = [
     path('balance-comprobacion/', views.balance_comprobacion, name='balance_comprobacion_general'),
     path('libro-mayor/<int:empresa_id>/', views.libro_mayor, name='libro_mayor'),
     path('balance-comprobacion/<int:empresa_id>/', views.balance_comprobacion, name='balance_comprobacion'),
-    path('balance-comprobacion/<int:empresa_id>/', views.balance_comprobacion, name='balance_comprobacion'),
     path('empresas/', views.lista_empresas, name='lista_empresas'),
 
 ]
