@@ -55,10 +55,9 @@
                     </form>
                 </div>
             </li>
-            <li>
-                <a href="{% url 'libro_mayor' %}">4. Generar Libro Mayor</a>
-            </li>
-            <li><a href="{% url 'consultas' %}">5. Consultar Transacciones</a></li>
+            <li><a href="{% url 'libro_mayor' empresa_id=2 %}">4. Generar Libro Mayor</a></li>
+            <li><a href="{% url 'balance_comprobacion' empresa_id=1 %}">5. Balance de comprobación</a></lib>
+            <li><a href="{% url 'consultas' %}">6. Consultar Transacciones</a></li>
         </ul>
         
         <div class="gestion-empresas">

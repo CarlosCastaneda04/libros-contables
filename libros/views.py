@@ -14,6 +14,7 @@ import openpyxl
 from django.contrib import messages
 # Aún no usaremos los otros modelos aquí, pero los necesitaremos pronto
 from .models import MovimientoContable, Cuenta, AsientoDiario, Empresa
+from django.shortcuts import render, get_object_or_404
 
 def home(request):
     # Obtenemos todas las empresas de la base de datos
@@ -255,33 +256,124 @@ def libro_mayor(request):
     # Obtiene todas las cuentas que tienen al menos un movimiento contable.
     cuentas_con_movimientos = Cuenta.objects.filter(movimientocontable__isnull=False).distinct().order_by('codigo')
 
-    # Procesaremos los datos para que sea más fácil en la plantilla
+def balance_comprobacion(request, empresa_id=None):
+    empresas = Empresa.objects.all()
+    empresa_seleccionada = None
+    datos_balance = []
+    total_deudor = 0
+    total_acreedor = 0
+    
+    # Si se proporcionó un ID de empresa
+    if empresa_id:
+        empresa_seleccionada = get_object_or_404(Empresa, id=empresa_id)
+        
+        movimientos_empresa = MovimientoContable.objects.filter(asiento_diario__empresa=empresa_seleccionada)
+        
+        cuentas_con_movimientos = Cuenta.objects.filter(
+            movimientocontable__in=movimientos_empresa
+        ).distinct().order_by('codigo')
+
+        for cuenta in cuentas_con_movimientos:
+            totales = movimientos_empresa.filter(cuenta=cuenta).aggregate(
+                debe=Sum('debe'),
+                haber=Sum('haber')
+            )
+            debe_total = totales['debe'] or 0
+            haber_total = totales['haber'] or 0
+            
+            saldo_deudor = max(0, debe_total - haber_total)
+            saldo_acreedor = max(0, haber_total - debe_total)
+
+            total_deudor += debe_total
+            total_acreedor += haber_total
+
+            datos_balance.append({
+                'cuenta': cuenta,
+                'debe': debe_total,
+                'haber': haber_total,
+                'saldo_deudor': saldo_deudor,
+                'saldo_acreedor': saldo_acreedor
+            })
+
+    contexto = {
+        'empresas': empresas,
+        'empresa_seleccionada': empresa_seleccionada,
+        'datos_balance': datos_balance,
+        'total_deudor': total_deudor,
+        'total_acreedor': total_acreedor,
+    }
+
+    return render(request, 'libros/balance_comprobacion.html', contexto)
+
+
+
+
+def libro_mayor(request, empresa_id):
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+    
+    # Obtener TODAS las empresas para el selector
+    todas_empresas = Empresa.objects.all()
+    
+    # Obtener parámetros del filtro
+    cuenta_codigo = request.GET.get('cuenta_id')
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    
+    # Obtener TODAS las cuentas disponibles
+    cuentas = Cuenta.objects.all()
+    
+    # Base query - filtrar por empresa
+    movimientos = MovimientoContable.objects.filter(
+        asiento_diario__empresa=empresa
+    ).select_related('asiento_diario', 'cuenta')
+    
+    # Aplicar filtros
+    if cuenta_codigo:
+        movimientos = movimientos.filter(cuenta__codigo=cuenta_codigo)
+    
+    if fecha_inicio:
+        movimientos = movimientos.filter(asiento_diario__fecha__gte=fecha_inicio)
+    
+    if fecha_fin:
+        movimientos = movimientos.filter(asiento_diario__fecha__lte=fecha_fin)
+    
+    # Agrupar movimientos por cuenta
     datos_mayor = []
+    
+    # Obtener cuentas únicas que tienen movimientos con los filtros aplicados
+    cuentas_con_movimientos = Cuenta.objects.filter(
+        movimientocontable__in=movimientos
+    ).distinct()
+    
     for cuenta in cuentas_con_movimientos:
-        movimientos = cuenta.movimientocontable_set.all().order_by('asiento_diario__fecha')
-        saldo = 0
+        movimientos_cuenta = movimientos.filter(cuenta=cuenta).order_by('asiento_diario__fecha', 'id')
+        
+        saldo_acumulado = 0
         movimientos_con_saldo = []
-        for mov in movimientos:
-            # Asumimos una naturaleza deudora (Activos, Gastos)
-            # Una lógica completa necesitaría saber la naturaleza de la cuenta.
-            saldo += mov.debe - mov.haber
+        
+        for mov in movimientos_cuenta:
+            saldo_acumulado += mov.debe - mov.haber
             movimientos_con_saldo.append({
                 'fecha': mov.asiento_diario.fecha,
                 'descripcion': mov.asiento_diario.descripcion,
                 'debe': mov.debe,
                 'haber': mov.haber,
-                'saldo': saldo,
+                'saldo': saldo_acumulado
             })
-
+        
         datos_mayor.append({
             'cuenta': cuenta,
             'movimientos': movimientos_con_saldo,
-            'saldo_final': saldo,
+            'saldo_final': saldo_acumulado
         })
-
+    
     context = {
-        'datos_mayor': datos_mayor
+        'empresa': empresa,
+        'todas_empresas': todas_empresas,  # Nuevo: todas las empresas para el selector
+        'cuentas': cuentas,
+        'datos_mayor': datos_mayor,
     }
+    
     return render(request, 'libros/libro_mayor.html', context)
 
 def consultas(request):
@@ -310,4 +402,4 @@ def consultas(request):
     context = {
         'asientos': asientos_encontrados
     }
-    return render(request, 'libros/consultas.html', context)
+    return render(request, 'libros/consultas.html', context) 
