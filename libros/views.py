@@ -85,6 +85,10 @@ def buscar_cuentas(request):
 
     return JsonResponse(resultados, safe=False)
 
+def lista_empresas(request):
+    empresas = Empresa.objects.all()
+    return render(request, 'libros/lista_empresas.html', {'empresas': empresas})
+
 def siguiente_numero_asiento(request, empresa_id):
     try:
         # Contamos cuántos asientos ya existen para esa empresa
