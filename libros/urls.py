@@ -7,9 +7,15 @@ urlpatterns = [
     path('crear/', views.crear_asiento, name='crear_asiento'),
     path('cuentas/', views.lista_cuentas, name='lista_cuentas'),    
     path('libro-diario/<int:empresa_id>/', views.libro_diario, name='libro_diario'),
-    path('libro-mayor/', views.libro_mayor, name='libro_mayor'),
     path('consultas/', views.consultas, name='consultas'),
     path('buscar-cuentas/', views.buscar_cuentas, name='buscar_cuentas'),
     path('siguiente-asiento/<int:empresa_id>/', views.siguiente_numero_asiento, name='siguiente_asiento'),
-
+    path('empresas/', views.lista_empresas, name='lista_empresas'),
+    
+    path('balance-comprobacion/', views.balance_comprobacion, name='balance_comprobacion_general'),
+    path('libro-mayor/<int:empresa_id>/', views.libro_mayor, name='libro_mayor'),
+    path('balance-comprobacion/<int:empresa_id>/', views.balance_comprobacion, name='balance_comprobacion'),
+    path('balance-comprobacion/<int:empresa_id>/', views.balance_comprobacion, name='balance_comprobacion'),
 ]
+    
+    

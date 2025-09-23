@@ -1,0 +1,13 @@
+<h1>Selecciona una Empresa</h1>
+
+<p>Ver mis empresas <a href="{% url 'lista_empresas' %}">empresas</a></p>
+<h2>Balance de Comprobación</h2>
+<ul>
+  {% for empresa in empresas %}
+  <li>
+    <a href="{% url 'balance_comprobacion' empresa_id %}">
+      Ver Balance de Comprobación de {{ empresa.nombre }}
+    </a>
+  </li>
+  {% endfor %}
+</ul>
