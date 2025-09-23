@@ -13,4 +13,6 @@ urlpatterns = [
     path('siguiente-asiento/<int:empresa_id>/', views.siguiente_numero_asiento, name='siguiente_asiento'),
     path('libro-diario/<int:empresa_id>/pdf/', views.libro_diario_pdf, name='libro_diario_pdf'),
     path('libro-diario/<int:empresa_id>/excel/', views.libro_diario_excel, name='libro_diario_excel'),
+    path('asiento/eliminar/<int:asiento_id>/', views.eliminar_asiento, name='eliminar_asiento'),
+
 ]

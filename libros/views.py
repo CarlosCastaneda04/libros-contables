@@ -1,5 +1,5 @@
 # libros/views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404 
 from django.db import transaction # Importamos transaction para seguridad
 from django.http import JsonResponse
 from django.db.models import Q
@@ -21,6 +21,24 @@ def home(request):
         'empresas': empresas
     }
     return render(request, 'libros/home.html', context)
+
+def eliminar_asiento(request, asiento_id):
+    # Usamos un método POST por seguridad para acciones destructivas
+    if request.method == 'POST':
+        # Buscamos el asiento, si no existe, dará un error 404
+        asiento = get_object_or_404(AsientoDiario, pk=asiento_id)
+
+        # Guardamos el ID de la empresa ANTES de borrar el asiento
+        empresa_id = asiento.empresa.id
+
+        # Eliminamos el asiento (y sus movimientos gracias a on_delete=CASCADE)
+        asiento.delete()
+
+        # Redirigimos de vuelta al libro diario de la empresa correcta
+        return redirect('libro_diario', empresa_id=empresa_id)
+
+    # Si alguien intenta acceder a la URL por GET, lo redirigimos al inicio
+    return redirect('home')
 
 def buscar_cuentas(request):
     # Obtenemos el término de búsqueda que nos envía el JavaScript

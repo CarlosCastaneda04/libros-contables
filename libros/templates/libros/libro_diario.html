@@ -61,6 +61,14 @@
                         <td>{{ asiento.fecha|date:"d/m/Y" }}</td>
                         <td>{{ asiento.numero_asiento }}</td>
                         <td colspan="4"><strong>{{ asiento.descripcion }}</strong></td>
+                        <td colspan="2" style="text-align: right;">
+                <form action="{% url 'eliminar_asiento' asiento.id %}" method="post" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este asiento permanentemente?');" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" style="background:none; border:none; color:red; cursor:pointer; padding:0; font-size: inherit;">
+                        🗑️ Eliminar
+                    </button>
+                </form>
+            </td>
                     </tr>
                     {% for movimiento in asiento.movimientos.all %}
                         <tr class="movimiento-row">
