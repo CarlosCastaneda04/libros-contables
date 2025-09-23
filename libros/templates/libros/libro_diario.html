@@ -35,8 +35,15 @@
             <h1>{{ empresa.nombre|default:"Nombre de Empresa no Definido" }}</h1>
             <h2>Libro de Diario</h2>
         </div>
+        {% if not is_for_pdf %}
         <a class="nav-link" href="{% url 'home' %}">Volver al Menú Principal</a>
-
+        <div>
+            <a href="{% url 'libro_diario_pdf' empresa.id %}" style="margin-right: 10px;">📄 Descargar como PDF</a>
+            <a href="{% url 'libro_diario_excel' empresa.id %}">📊 Exportar a Excel</a>
+        </div>
+        {% endif %}
+        <table class="report-table">
+    </div>
         <table class="report-table">
             <thead>
                 <tr>

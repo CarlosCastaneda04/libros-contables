@@ -11,5 +11,6 @@ urlpatterns = [
     path('consultas/', views.consultas, name='consultas'),
     path('buscar-cuentas/', views.buscar_cuentas, name='buscar_cuentas'),
     path('siguiente-asiento/<int:empresa_id>/', views.siguiente_numero_asiento, name='siguiente_asiento'),
-
+    path('libro-diario/<int:empresa_id>/pdf/', views.libro_diario_pdf, name='libro_diario_pdf'),
+    path('libro-diario/<int:empresa_id>/excel/', views.libro_diario_excel, name='libro_diario_excel'),
 ]

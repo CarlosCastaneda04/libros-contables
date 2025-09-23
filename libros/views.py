@@ -7,6 +7,10 @@ from .forms import AsientoDiarioForm
 from django.db.models import Sum
 from django.db.models import Max, IntegerField
 from django.db.models.functions import Coalesce, Cast
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
+import openpyxl
 # Aún no usaremos los otros modelos aquí, pero los necesitaremos pronto
 from .models import MovimientoContable, Cuenta, AsientoDiario, Empresa
 
@@ -146,6 +150,61 @@ def libro_diario(request, empresa_id):
         'gran_total_haber': gran_total['total_haber'] or 0
     }
     return render(request, 'libros/libro_diario.html', context)
+
+# --- VISTA PARA GENERAR PDF ---
+def libro_diario_pdf(request, empresa_id):
+    # La lógica para obtener los datos es la misma que en la vista normal
+    empresa = Empresa.objects.get(pk=empresa_id)
+    asientos = AsientoDiario.objects.filter(empresa=empresa).order_by('fecha').prefetch_related('movimientos__cuenta')
+    gran_total = MovimientoContable.objects.filter(asiento_diario__in=asientos).aggregate(
+        total_debe=Sum('debe'), total_haber=Sum('haber')
+    )
+    context = {
+        'asientos': asientos,
+        'empresa': empresa,
+        'gran_total_debe': gran_total['total_debe'] or 0,
+        'gran_total_haber': gran_total['total_haber'] or 0,
+        'is_for_pdf': True
+    }
+
+    # Renderizamos la plantilla HTML a una cadena de texto
+    html_string = render_to_string('libros/libro_diario.html', context)
+
+    # Usamos WeasyPrint para convertir el HTML a PDF
+    pdf = HTML(string=html_string).write_pdf()
+
+    # Creamos una respuesta HTTP con el PDF
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="libro_diario_{empresa.nombre}.pdf"'
+    return response
+
+# --- VISTA PARA GENERAR EXCEL ---
+def libro_diario_excel(request, empresa_id):
+    # Obtenemos los datos de nuevo
+    empresa = Empresa.objects.get(pk=empresa_id)
+    asientos = AsientoDiario.objects.filter(empresa=empresa).order_by('fecha').prefetch_related('movimientos__cuenta')
+
+    # Creamos un libro de Excel en memoria
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Libro Diario"
+
+    # Escribimos los encabezados
+    ws.append(['Fecha', 'Numero', 'Codigo', 'Descripcion', 'Debe', 'Haber'])
+
+    # Escribimos los datos de cada asiento y movimiento
+    for asiento in asientos:
+        ws.append([asiento.fecha, asiento.numero_asiento, '', asiento.descripcion, '', ''])
+        for movimiento in asiento.movimientos.all():
+            ws.append(['', '', movimiento.cuenta.codigo, movimiento.cuenta.nombre, movimiento.debe, movimiento.haber])
+
+    # Creamos la respuesta HTTP
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="libro_diario_{empresa.nombre}.xlsx"'
+
+    # Guardamos el libro de Excel en la respuesta
+    wb.save(response)
+    return response
 
 def libro_mayor(request):
     # Obtiene todas las cuentas que tienen al menos un movimiento contable.
