@@ -78,7 +78,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'libroscontables',  # El nombre de la DB que creaste
         'USER': 'postgres',         # Tu usuario de PostgreSQL (por defecto es 'postgres')
-        'PASSWORD': 'admin123', # La contraseña que pusiste al instalar PostgreSQL
+        'PASSWORD': '1704', # La contraseña que pusiste al instalar PostgreSQL
         'HOST': 'localhost',        # O la dirección IP si la DB está en otro servidor
         'PORT': '5432',             # El puerto por defecto de PostgreSQL
     }
