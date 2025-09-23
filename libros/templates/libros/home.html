@@ -6,25 +6,40 @@
     <style>
         body { font-family: sans-serif; margin: 40px; background-color: #f4f4f9; }
         .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { color: #333; text-align: center; }
+        h1, h2 { color: #333; text-align: center; }
         .menu { list-style: none; padding: 0; }
         .menu li { margin-bottom: 15px; }
         .menu a { text-decoration: none; background-color: #007bff; color: white; padding: 15px; display: block; border-radius: 5px; text-align: center; font-size: 1.2em; transition: background-color 0.3s; }
         .menu a:hover { background-color: #0056b3; }
-        /* Estilos para el nuevo formulario */
         .report-form { border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #f9f9f9; }
         .report-form label { display: block; margin-bottom: 10px; font-weight: bold; }
         .report-form select { width: 100%; padding: 8px; margin-bottom: 10px; }
         .report-form button { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; }
+        
+        /* --- ESTILOS NUEVOS --- */
+        .gestion-empresas { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; }
+        .lista-empresas { list-style: none; padding: 0; }
+        .lista-empresas li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .delete-btn { background: none; border: none; color: red; cursor: pointer; font-size: 1em; }
+        .messages { list-style: none; padding: 0; margin-bottom: 20px; }
+        .messages .success { border: 1px solid green; background-color: #d4edda; padding: 10px; border-radius: 5px; }
+        .messages .error { border: 1px solid red; background-color: #f8d7da; padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
         <h1>Menú Principal</h1>
         <ul class="menu">
             <li><a href="{% url 'crear_asiento' %}">1. Ingresar Nuevo Asiento Contable</a></li>
             <li><a href="{% url 'lista_cuentas' %}">2. Verificar Catálogo de Cuentas</a></li>
-            
             <li>
                 <div class="report-form">
                     <form id="formLibroDiario">
@@ -40,17 +55,42 @@
                     </form>
                 </div>
             </li>
-            <li><a href="{% url 'libro_mayor' %}">4. Generar Libro Mayor</a></li>
+            <li>
+                <a href="{% url 'libro_mayor' %}">4. Generar Libro Mayor</a>
+            </li>
             <li><a href="{% url 'consultas' %}">5. Consultar Transacciones</a></li>
         </ul>
-    </div>
+        
+        <div class="gestion-empresas">
+            <h2>Gestionar Empresas</h2>
+            <form action="{% url 'agregar_empresa' %}" method="post" style="margin-bottom: 20px;">
+                {% csrf_token %}
+                <input type="text" name="nombre_empresa" placeholder="Nombre de la nueva empresa" required style="width: 70%; padding: 8px;">
+                <button type="submit" style="padding: 8px;">Agregar Empresa</button>
+            </form>
+
+            <h3>Empresas Registradas</h3>
+            <ul class="lista-empresas">
+                {% for empresa in empresas %}
+                <li>
+                    <span>{{ empresa.nombre }}</span>
+                    <form action="{% url 'eliminar_empresa' empresa.id %}" method="post" onsubmit="return confirm('¿Estás seguro? Esta acción no se puede deshacer.');">
+                        {% csrf_token %}
+                        <button type="submit" class="delete-btn">Eliminar</button>
+                    </form>
+                </li>
+                {% empty %}
+                <li>No hay empresas registradas.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        </div>
 
     <script>
         document.getElementById('formLibroDiario').addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevenimos el envío normal
+            event.preventDefault();
             const empresaId = document.getElementById('empresa-select-diario').value;
             if (empresaId) {
-                // Construimos la URL y redirigimos
                 window.location.href = `/libro-diario/${empresaId}/`;
             } else {
                 alert("Por favor, seleccione una empresa.");

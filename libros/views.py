@@ -11,6 +11,7 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 import openpyxl
+from django.contrib import messages
 # Aún no usaremos los otros modelos aquí, pero los necesitaremos pronto
 from .models import MovimientoContable, Cuenta, AsientoDiario, Empresa
 
@@ -21,6 +22,32 @@ def home(request):
         'empresas': empresas
     }
     return render(request, 'libros/home.html', context)
+
+def agregar_empresa(request):
+    if request.method == 'POST':
+        nombre_empresa = request.POST.get('nombre_empresa')
+        if nombre_empresa: # Nos aseguramos de que el nombre no esté vacío
+            # Verificamos si ya existe para evitar duplicados
+            if not Empresa.objects.filter(nombre=nombre_empresa).exists():
+                Empresa.objects.create(nombre=nombre_empresa)
+                messages.success(request, f"Empresa '{nombre_empresa}' agregada con éxito.")
+            else:
+                messages.error(request, f"La empresa '{nombre_empresa}' ya existe.")
+    return redirect('home')
+
+def eliminar_empresa(request, empresa_id):
+    if request.method == 'POST':
+        empresa = get_object_or_404(Empresa, pk=empresa_id)
+
+        # --- LÓGICA DE PROTECCIÓN ---
+        # Verificamos si la empresa tiene asientos de diario asociados
+        if empresa.asientodiario_set.exists():
+            messages.error(request, f"No se puede eliminar la empresa '{empresa.nombre}' porque tiene asientos registrados.")
+        else:
+            nombre_empresa = empresa.nombre
+            empresa.delete()
+            messages.success(request, f"Empresa '{nombre_empresa}' eliminada con éxito.")
+    return redirect('home')
 
 def eliminar_asiento(request, asiento_id):
     # Usamos un método POST por seguridad para acciones destructivas

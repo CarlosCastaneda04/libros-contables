@@ -14,5 +14,6 @@ urlpatterns = [
     path('libro-diario/<int:empresa_id>/pdf/', views.libro_diario_pdf, name='libro_diario_pdf'),
     path('libro-diario/<int:empresa_id>/excel/', views.libro_diario_excel, name='libro_diario_excel'),
     path('asiento/eliminar/<int:asiento_id>/', views.eliminar_asiento, name='eliminar_asiento'),
-
+    path('empresa/agregar/', views.agregar_empresa, name='agregar_empresa'),
+    path('empresa/eliminar/<int:empresa_id>/', views.eliminar_empresa, name='eliminar_empresa'),
 ]
