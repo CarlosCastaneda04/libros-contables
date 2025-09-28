@@ -1,0 +1,296 @@
+/* ===== Reset & base ===== */
+* { box-sizing: border-box; }
+:root{
+  --bg: #0f1217;
+  --surface: #141923;
+  --surface-2: #192131;
+  --text: #ecf0f6;
+  --muted: #b6c0cf;
+  --line: rgba(236,240,246,0.16);
+
+  --primary: #7a8cff;
+  --accent:  #41c4d9;
+
+  --focus: #ffd36a;
+  --zebra: rgba(236,240,246,0.035);
+  --zebra-2: rgba(122,140,255,0.08);
+  --shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+html, body { height: 100%; }
+body{
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(1000px 500px at -10% -10%, rgba(122,140,255,0.18), transparent 60%),
+    radial-gradient(900px 450px at 110% 0%, rgba(65,196,217,0.18), transparent 60%),
+    linear-gradient(180deg, #0c1015, var(--bg) 50%, #0c1015);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:focus { outline: 3px solid var(--focus); outline-offset: 2px; }
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+/* ===== Layout ===== */
+.container{ max-width: 1200px; margin: 0 auto; padding: 0 40px 40px; }
+
+/* Grid dos columnas (izq/der). 
+   Usamos minmax para evitar que colapse y para que a la izquierda quepan las cards grandes. */
+.grid{
+  display: grid;
+  grid-template-columns: minmax(380px, 1.1fr) minmax(340px, 0.9fr);
+  gap: 28px;
+  align-items: start;
+}
+
+/* ===== Header ===== */
+.site-header{
+  padding: 24px 40px 8px;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(6px);
+  background: linear-gradient(180deg, rgba(15,18,23,0.85), rgba(15,18,23,0.65));
+  z-index: 10;
+}
+.brand{ display: flex; align-items: center; gap: 14px; }
+.logo{
+  width: 44px; height: 44px; border-radius: 12px;
+  display: grid; place-items: center;
+  font-weight: 800; letter-spacing: .5px;
+  color: #0b0f16;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border: 1px solid rgba(236,240,246,0.25);
+  box-shadow: var(--shadow);
+}
+.titles h1{ margin: 0; font-size: 1.6rem; font-weight: 800; }
+.titles .subtitle{ margin: 4px 0 0; color: var(--muted); }
+
+/* ===== Messages ===== */
+.messages{
+  list-style: none; padding: 0; margin: 16px 0 16px;
+  display: grid; gap: 8px;
+}
+.messages li{
+  padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface);
+}
+.messages .success{ border-color: rgba(65,196,217,0.35); background: rgba(65,196,217,0.12); }
+.messages .error{ border-color: rgba(255,86,86,0.45); background: rgba(255,86,86,0.12); }
+.messages .warning{ border-color: rgba(255,211,106,0.55); background: rgba(255,211,106,0.12); }
+
+/* ===== Hero ===== */
+.hero{ margin: 0 0 14px; }
+.hero h2{ margin: 0 4 6px; font-size: 1.45rem; }
+.hero p{ margin: 0; color: var(--muted); }
+
+/* ===== Columna izquierda (cards más grandes) ===== */
+.left-rail { display: grid; align-content: start; gap: 16px; }
+
+/* Actions: una card por fila, más grandes */
+.actions-grid{
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+.action-card{
+  text-decoration: none; color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 20px 18px;
+  display: grid; grid-template-columns: 56px 1fr; gap: 14px;
+  box-shadow: var(--shadow);
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .2s ease;
+}
+.action-card:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+  border-color: rgba(122,140,255,0.5);
+  background: linear-gradient(180deg, rgba(20,25,35,1), rgba(25,33,49,0.96));
+}
+.action-icon{
+  width: 56px; height: 56px; border-radius: 14px;
+  display: grid; place-items: center;
+  color: #0b0f16;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border: 1px solid rgba(236,240,246,0.25);
+}
+.action-content h3{ margin: 2px 0 6px; font-size: 1.12rem; font-weight: 800; }
+.action-content p{ margin: 0; color: var(--muted); font-size: .98rem; }
+
+/* ===== Columna derecha (paneles) ===== */
+.right-rail { margin-top: 7.4px; display: grid; align-content: start; gap: 16px; }
+.report-card{
+  margin-top: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+.report-card + .report-card{ margin-top: 0 }
+.report-card h3{ margin: 0 0 12px; font-size: 1.12rem; }
+
+/* ===== Report form ===== */
+.report-form{
+  display: grid; gap: 12px;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+
+/* === Caja con límite + scroll interno (Gestionar Empresas) === */
+.report-card.empresas-card{
+  display: flex;
+  flex-direction: column;
+  /* Límite visual de la cajita: ajústalo a tu gusto */
+ max-height: 414px !important;                 /* por ejemplo, 560px */
+  overflow: hidden;                  /* lo que se pase, que lo maneje la lista */
+}
+
+/* Título y formulario no crecen */
+.report-card.empresas-card h3,
+.report-card.empresas-card .empresa-form,
+.report-card.empresas-card .empresas-title{
+  flex: 0 0 auto;
+}
+
+/* La lista ocupa el espacio restante y scrollea cuando rebasa el límite */
+.report-card.empresas-card .lista-empresas{
+  flex: 1 1 auto;
+  min-height: 0;                     /* CLAVE para permitir scroll en contenedores flex */
+  overflow-y: auto;
+  padding-right: 6px;                /* espacio para el scrollbar */
+}
+
+/* Scrollbar sutil (opcional) */
+.report-card.empresas-card .lista-empresas::-webkit-scrollbar{ width: 8px; }
+.report-card.empresas-card .lista-empresas::-webkit-scrollbar-thumb{
+  background: rgba(236,240,246,0.18);
+  border-radius: 8px;
+}
+.report-card.empresas-card .lista-empresas::-webkit-scrollbar-thumb:hover{
+  background: rgba(236,240,246,0.25);
+}
+
+
+
+.select-wrap{ position: relative; }
+.select-wrap select{
+  width: 100%;
+  appearance: none;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 1rem;
+}
+.select-icon{
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  pointer-events: none; color: var(--muted);
+}
+
+/* Botón primario */
+.btn-primary{
+  appearance: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid rgba(236,240,246,0.25);
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #0b0f16;
+  box-shadow: var(--shadow);
+  transition: filter .15s ease, transform .1s ease;
+}
+.btn-primary:hover{ filter: brightness(1.05); }
+.btn-primary:active{ transform: translateY(1px); }
+
+/* ===== Gestión de empresas ===== */
+.empresa-form{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  margin: 6px 0 14px;
+}
+.empresa-form input[name="nombre_empresa"] {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.98rem;
+}
+.empresa-form input[name="nombre_empresa"]::placeholder { color: var(--muted); }
+.empresa-form input[name="nombre_empresa"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(65,196,217,0.3);
+}
+.empresas-title { margin: 10px 0 8px; font-size: 1rem; font-weight: 600; color: var(--text); }
+.lista-empresas{
+  list-style: none; padding: 0; margin: 0;
+  display: grid; gap: 8px;
+}
+.lista-empresas li{
+  display: grid; grid-template-columns: 1fr auto; align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.delete-btn{
+  appearance: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(255,86,86,0.5);
+  background: rgba(255,86,86,0.15);
+  color: #ffb3b3;
+}
+.delete-btn:hover{ filter: brightness(1.05); }
+
+/* ===== Footer ===== */
+.site-footer{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 40px 32px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* ===== Responsive ===== */
+/* APILAR en 1 columna SOLO cuando el viewport sea angosto (< 768px) */
+@media (max-width: 768px){
+  .grid{ grid-template-columns: 1fr; }
+  .left-rail, .right-rail{ gap: 14px; }
+  .report-form{ grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px){
+  .container{ padding: 0 20px 32px; }
+  .site-header{ padding: 20px 20px 8px; }
+}
+
+/* ===== Print ===== */
+@media print{
+  @page{ margin: 16mm; }
+  body{ background: #fff; color: #000; }
+  .site-header{
+    position: static; background: #fff; border: 0;
+    padding: 0 0 8px; box-shadow: none;
+  }
+  .action-card, .report-card{
+    background: #fff; border: 1px solid #000; box-shadow: none;
+  }
+}

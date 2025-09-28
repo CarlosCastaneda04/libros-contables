@@ -1,62 +1,74 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Consultar Transacciones</title>
-    <style>
-        body { font-family: sans-serif; margin: 40px; }
-        .container { max-width: 900px; margin: auto; }
-        .search-form { background-color: #f2f2f2; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-        .search-form input { width: 98%; padding: 10px; margin-bottom: 10px; }
-        .search-form button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        a { color: #007bff; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Consultar Transacciones</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/consultas.css' %}">
 </head>
 <body>
-    <div class="container">
-        <h1>Consultar Transacciones</h1>
-        <a href="{% url 'home' %}">Volver al Menú Principal</a>
-        <hr>
+  <div class="page">
+    <header class="header">
+      <h1 class="brand__title">Consultar Transacciones</h1>
+      
+      <div class="header__line"></div>
+    </header>
 
-        <div class="search-form">
-            <form method="post">
-                {% csrf_token %}
-                <label for="fecha_inicio">Buscar por Rango de Fechas:</label><br>
-                <input type="date" name="fecha_inicio">
-                <input type="date" name="fecha_fin">
+    <main class="container">
+        <div class="nav-wrapper">
+        <a class="nav-link" href="{% url 'home' %}">← Menú Principal</a>
+      </div>
+      <section class="search-form">
+        <form method="post">
+          {% csrf_token %}
+          <label for="fecha_inicio">Buscar por Rango de Fechas</label>
+          <div class="filters-row">
+            <input type="date" name="fecha_inicio" id="fecha_inicio">
+            <input type="date" name="fecha_fin" id="fecha_fin">
+          </div>
 
-                <label for="descripcion">Buscar por Descripción:</label><br>
-                <input type="text" name="descripcion" placeholder="Ej: Venta de mercadería...">
+          <label for="descripcion">Buscar por Descripción</label>
+          <input type="text" name="descripcion" id="descripcion" placeholder="Ej: Venta de mercadería...">
 
-                <button type="submit">Buscar</button>
-            </form>
+          <div class="actions">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+          </div>
+        </form>
+      </section>
+
+      {% if asientos %}
+        <h2 class="results-title">Resultados de la Búsqueda</h2>
+        <div class="table-wrap">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th class="col-fecha">Fecha</th>
+                <th class="col-numero">No. Asiento</th>
+                <th class="col-descripcion">Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for asiento in asientos %}
+                <tr>
+                  <td>{{ asiento.fecha|date:"d/m/Y" }}</td>
+                  <td>{{ asiento.numero_asiento }}</td>
+                  <td>{{ asiento.descripcion }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+      {% elif request.method == 'POST' %}
+        <p class="empty">No se encontraron asientos que coincidan con los criterios de búsqueda.</p>
+      {% endif %}
+    </main>
 
-        {% if asientos %}
-            <h2>Resultados de la Búsqueda</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>No. Asiento</th>
-                        <th>Descripción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for asiento in asientos %}
-                        <tr>
-                            <td>{{ asiento.fecha|date:"d/m/Y" }}</td>
-                            <td>{{ asiento.numero_asiento }}</td>
-                            <td>{{ asiento.descripcion }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% elif request.method == 'POST' %}
-            <p>No se encontraron asientos que coincidan con los criterios de búsqueda.</p>
-        {% endif %}
-    </div>
+    <footer class="footer">
+      <small>© {{ now|date:"Y" }} Software Contable · Consultas</small>
+    </footer>
+  </div>
 </body>
 </html>

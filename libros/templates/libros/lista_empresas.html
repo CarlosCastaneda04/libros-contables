@@ -1,13 +1,48 @@
-<h1>Selecciona una Empresa</h1>
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Selecciona una Empresa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'css/empresas.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">SC</div>
+      <div class="titles">
+        <h1>Selecciona una Empresa</h1>
+        <p class="subtitle">Elige la empresa para ver su balance de comprobación</p>
+      </div>
+    </div>
+  </header>
 
-<p>Ver mis empresas <a href="{% url 'lista_empresas' %}">empresas</a></p>
-<h2>Balance de Comprobación</h2>
-<ul>
-  {% for empresa in empresas %}
-  <li>
-    <a href="{% url 'balance_comprobacion' empresa_id %}">
-      Ver Balance de Comprobación de {{ empresa.nombre }}
-    </a>
-  </li>
-  {% endfor %}
-</ul>
+  <main class="container">
+    <p class="hint">
+      Ver mis <a class="link" href="{% url 'lista_empresas' %}">empresas</a>
+    </p>
+
+    <section class="card">
+      <h2>Balance de Comprobación</h2>
+      <ul class="empresas-list">
+        {% for empresa in empresas %}
+          <li class="empresa-item">
+            <a class="empresa-link" href="{% url 'balance_comprobacion' empresa.id %}">
+              Ver balance de {{ empresa.nombre }}
+            </a>
+          </li>
+        {% empty %}
+          <li class="empresa-item empty">No hay empresas registradas.</li>
+        {% endfor %}
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small>© {{ now|date:"Y" }} Software Contable</small>
+  </footer>
+</body>
+</html>

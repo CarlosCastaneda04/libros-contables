@@ -1,0 +1,363 @@
+/* ===== Reset & base ===== */
+* { box-sizing: border-box; }
+:root{
+  --bg: #0f1217;
+  --surface: #141923;
+  --surface-2: #192131;
+  --text: #ecf0f6;
+  --muted: #b6c0cf;
+  --line: rgba(236,240,246,0.16);
+
+  --primary: #7a8cff;    /* índigo suave */
+  --accent:  #41c4d9;    /* cian suave */
+  --focus: #ffd36a;
+
+  --shadow: 0 10px 30px rgba(0,0,0,0.35);
+  --ok: #23d18b;
+  --warn: #ff6b6b;
+}
+
+html, body { height: 100%; }
+body{
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(1000px 500px at -10% -10%, rgba(122,140,255,0.18), transparent 60%),
+    radial-gradient(900px 450px at 110% 0%, rgba(65,196,217,0.18), transparent 60%),
+    linear-gradient(180deg, #0c1015, var(--bg) 50%, #0c1015);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:focus { outline: 3px solid var(--focus); outline-offset: 2px; }
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+.page-title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.container {
+  max-width: 1000px; /* mismo ancho de la tarjeta */
+  margin: 0 auto;
+  padding: 0 20px;   /* respiración lateral */
+}
+
+.card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.nav-wrapper {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-start; /* botón alineado a la izquierda */
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--accent);
+  font-weight: 600;
+  background: rgba(65,196,217,0.10);
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(65,196,217,0.25);
+  display: inline-block;
+  transition: background .2s ease;
+}
+
+.nav-link:hover {
+  background: rgba(65,196,217,0.2);
+}
+
+
+
+form#asientoForm {
+  position: relative;
+  padding-top: 60px; /* Ajusta según la altura del botón */
+}
+h1{
+  max-width: 1100px;
+  margin: 8px auto 16px;
+  padding: 0 40px;
+  font-size: 1.6rem;
+  letter-spacing: .2px;
+}
+
+/* ===== Formulario ===== */
+form#asientoForm{
+  max-width: 1100px;
+  margin: 80px auto 40px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 24px 24px 28px;
+}
+
+h2{
+
+  margin: 8px 0 12px;
+  font-size: 1.2rem;
+}
+hr{
+  border: none;
+  height: 1px;
+  margin: 18px 0;
+  background: linear-gradient(90deg, transparent, var(--line), transparent);
+}
+
+label{
+  display: inline-block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+p{
+  margin: 10px 0 14px;
+  padding: 0;
+}
+
+/* Inputs básicos */
+input[type="text"],
+input[type="date"],
+input[type="number"],
+select,
+textarea{
+  width: 100%;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.98rem;
+}
+input[type="number"]{
+  text-align: right;
+}
+
+/* ===== Tabla de movimientos ===== */
+#tablaMovimientos{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#tablaMovimientos thead th{
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  padding: 12px 14px;
+  color: #f7f9ff;
+  font-weight: 700;
+  background: linear-gradient(180deg, rgba(122,140,255,0.16), rgba(20,25,35,0.96));
+  border-bottom: 1px solid var(--line);
+}
+
+#tablaMovimientos tbody td{
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(236,240,246,0.08);
+  vertical-align: middle;
+}
+
+#tablaMovimientos tbody tr:nth-child(odd){ background: rgba(236,240,246,0.03); }
+#tablaMovimientos tbody tr:nth-child(even){ background: rgba(122,140,255,0.05); }
+
+/* Columna cuenta con autocomplete */
+.autocomplete-container{
+  position: relative;
+}
+.cuenta-autocomplete{
+  width: 100%;
+}
+
+/* Sugerencias autocomplete */
+.autocomplete-suggestions{
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + 4px);
+  border: 1px solid var(--line);
+  background-color: var(--surface);
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 99;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+.autocomplete-suggestions div{
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.autocomplete-suggestions div:hover{
+  background-color: rgba(122,140,255,0.10);
+}
+
+/* Botón eliminar de cada fila */
+#tablaMovimientos td button{
+  appearance: none;
+  border: 1px solid rgba(255,107,107,0.35);
+  background: rgba(255,107,107,0.12);
+  color: #ffdede;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+#tablaMovimientos td button:hover{
+  filter: brightness(1.1);
+}
+
+/* ===== Botones principales ===== */
+#agregarFila{
+  appearance: none;
+  border: 1px solid rgba(236,240,246,0.25);
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #0b0f16;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  margin-top: 12px;
+}
+#agregarFila:hover{ filter: brightness(1.05); }
+
+/* Guardar */
+#guardarBoton{
+  appearance: none;
+  border: 1px solid rgba(236,240,246,0.25);
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #0b0f16;
+  font-weight: 800;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+#guardarBoton[disabled]{
+  opacity: .5;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
+
+/* Mensaje de error */
+#errorMensaje{
+  margin-top: 8px;
+  color: var(--warn) !important;
+  font-weight: 600;
+}
+
+/* ===== Totales ===== */
+.totals-container{
+  margin-top: 20px;
+  padding: 16px;
+  background-color: rgba(236,240,246,0.06);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-align: right;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.totals-container span{
+  display: inline-block;
+  min-width: 120px;
+  text-align: right;
+}
+.totals-balanced{ color: var(--ok); }
+.totals-unbalanced{ color: var(--warn); }
+
+/* ===== Espaciados generales dentro del form ===== */
+form#asientoForm > button[type="submit"]{
+  margin-top: 8px;
+}
+form#asientoForm > hr:last-of-type{
+  margin-top: 16px;
+  margin-bottom: 14px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px){
+  .nav-link, h1{ padding: 0 20px; }
+  form#asientoForm{ padding: 18px; }
+  #tablaMovimientos thead th, #tablaMovimientos tbody td{ padding: 10px; }
+}
+
+/* ===== Print ===== */
+@media print{
+  @page{ margin: 16mm; }
+  body{ background: #fff; color: #000; }
+  .nav-link{ display: none !important; }
+
+  form#asientoForm{
+    border: 1px solid #000;
+    background: #fff;
+    box-shadow: none;
+  }
+  #tablaMovimientos{
+    background: #fff;
+    border: 1px solid #000;
+  }
+  #tablaMovimientos thead th{
+    background: #f0f0f0 !important; color: #000 !important;
+  }
+  #tablaMovimientos tbody tr:nth-child(odd),
+  #tablaMovimientos tbody tr:nth-child(even){
+    background: transparent !important;
+  }
+  #agregarFila, #guardarBoton, #tablaMovimientos td button{
+    display: none !important;
+  }
+  .totals-container{
+    background: #fff; color: #000;
+    border: 1px solid #000;
+  }
+}
+
+/* El input + dropdown */
+.autocomplete-container {
+  color: #ffffff;
+  position: relative;              /* referencia para el dropdown */
+  overflow: visible;               /* por si el td tenía overflow */
+}
+
+.autocomplete-suggestions {
+  position: absolute;              /* se “despega” del flujo del td */
+  top: 100%;                       /* justo debajo del input */
+  left: 0;
+  right: 0;                        /* mismo ancho del contenedor */
+  max-height: 240px;
+  overflow: auto;
+  background: #0f1217;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+  z-index: 9999;                   /* por encima de filas vecinas */
+}
+
+/* Evitar que la tabla corte el dropdown */
+#tablaMovimientos,
+#tablaMovimientos thead,
+#tablaMovimientos tbody,
+#tablaMovimientos tr,
+#tablaMovimientos td {
+  overflow: visible;
+}
+
+/* Opcional: estilo de cada sugerencia */
+.autocomplete-suggestions > div {
+  padding: 8px 10px;
+  cursor: pointer;
+}

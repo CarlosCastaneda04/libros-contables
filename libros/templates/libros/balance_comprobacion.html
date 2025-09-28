@@ -1,107 +1,82 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <title>Balance de Comprobación</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        margin: 40px;
-      }
-      .container {
-        max-width: 800px;
-        margin: auto;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-      }
-      th,
-      td {
-        padding: 12px;
-        border: 1px solid #ccc;
-        text-align: left;
-      }
-      th {
-        background-color: #f2f2f2;
-      }
-      .numero {
-        text-align: right;
-      }
-      .totales {
-        font-weight: bold;
-        background-color: #e0e0e0;
-      }
-      .cuadre {
-        text-align: center;
-        font-size: 1.2em;
-        margin-top: 20px;
-      }
-      .cuadra {
-        color: green;
-      }
-      .descuadra {
-        color: red;
-      }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/balance_comprobacion.css' %}">
+    <link rel="stylesheet" href="/css/balance_comprobacion.css">
   </head>
   <body>
-    <div class="container">
-      <h1>Balance de Comprobación</h1>
-      <a href="{% url 'home' %}">Volver al Menú Principal</a>
+    <div class="page">
+      <header class="header">
+        <h1 class="brand__title">Balance de Comprobación</h1>
+        
+        <div class="header__line"></div>
+      </header>
 
-<form action="{% url 'balance_comprobacion_general' %}" method="get">
-    <label for="empresa_select">Selecciona una empresa:</label>
-    <select name="empresa_select" id="empresa_select" onchange="window.location.href = '{% url 'balance_comprobacion' 0 %}'.replace('0', this.value)">
-        <option value="">-- Seleccionar --</option>
-        {% for empresa in empresas %}
-            <option value="{{ empresa.id }}" {% if empresa.id == empresa_seleccionada.id %}selected{% endif %}>
+      <main class="container">
+        <div class="nav-wrapper">
+          <a class="nav-link" href="{% url 'home' %}">← Menú Principal</a>
+        </div>
+        <form action="{% url 'balance_comprobacion_general' %}" method="get" class="empresa-form">
+          <label for="empresa_select">Selecciona una empresa:</label>
+              <select name="empresa_select" id="empresa_select" onchange="window.location.href = '{% url 'balance_comprobacion' 0 %}'.replace('0', this.value)">
+
+            <option value="">-- Seleccionar --</option>
+            {% for empresa in empresas %}
+              <option value="{{ empresa.id }}" {% if empresa.id == empresa_seleccionada.id %}selected{% endif %}>
                 {{ empresa.nombre }}
-            </option>
-        {% endfor %}
-    </select>
-</form>
-
-<hr>
-
-{% if empresa_seleccionada %}
-    <h2>Reporte de {{ empresa_seleccionada.nombre }}</h2>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>Cuenta</th>
-                <th>Débito</th>
-                <th>Crédito</th>
-                <th>Saldo Deudor</th>
-                <th>Saldo Acreedor</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for dato in datos_balance %}
-            <tr>
-                <td>{{ dato.cuenta.nombre }}</td>
-                <td>{{ dato.debe }}</td>
-                <td>{{ dato.haber }}</td>
-                <td>{{ dato.saldo_deudor }}</td>
-                <td>{{ dato.saldo_acreedor }}</td>
-            </tr>
+              </option>
             {% endfor %}
-            <tr>
-                <td>Total</td>
-                <td>{{ total_deudor }}</td>
-                <td>{{ total_acreedor }}</td>
-                <td></td>
-                <td></td>
-            </tr>
-        </tbody>
-    </table>
+          </select>
+        </form>
 
-{% else %}
-    <p>Por favor, selecciona una empresa para generar el balance de comprobación.</p>
-{% endif %}
-      </div>
+        {% if empresa_seleccionada %}
+          <h2 class="subtitle">Reporte de {{ empresa_seleccionada.nombre }}</h2>
+
+          <div class="table-wrap">
+            <table class="report-table">
+              <thead>
+                <tr>
+                  <th>Cuenta</th>
+                  <th class="numero">Débito</th>
+                  <th class="numero">Crédito</th>
+                  <th class="numero">Saldo Deudor</th>
+                  <th class="numero">Saldo Acreedor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for dato in datos_balance %}
+                  <tr>
+                    <td>{{ dato.cuenta.nombre }}</td>
+                    <td class="numero">{{ dato.debe }}</td>
+                    <td class="numero">{{ dato.haber }}</td>
+                    <td class="numero">{{ dato.saldo_deudor }}</td>
+                    <td class="numero">{{ dato.saldo_acreedor }}</td>
+                  </tr>
+                {% endfor %}
+                <tr class="totales">
+                  <td>Total</td>
+                  <td class="numero">{{ total_deudor }}</td>
+                  <td class="numero">{{ total_acreedor }}</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="empty">Por favor, selecciona una empresa para generar el balance de comprobación.</p>
+        {% endif %}
+      </main>
+
+      <footer class="footer">
+        <small>© {{ now|date:"Y" }} Software Contable · Balance de Comprobación</small>
+      </footer>
     </div>
   </body>
 </html>

@@ -1,146 +1,137 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Libro Mayor - {{ empresa.nombre }}</title>
-    <style>
-        body { font-family: sans-serif; margin: 40px; }
-        .container { max-width: 900px; margin: auto; }
-        .cuenta-bloque { margin-bottom: 30px; border: 1px solid #007bff; border-radius: 5px; }
-        .cuenta-header { background-color: #007bff; color: white; padding: 10px; font-size: 1.2em; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; border-top: 1px solid #ddd; text-align: left; }
-        .numero { text-align: right; }
-        .saldo-final { font-weight: bold; text-align: right; padding: 10px; }
-        a { color: #007bff; }
-        .filter-form { background: #f5f5f5; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-        .filter-form label { display: block; margin: 10px 0 5px; font-weight: bold; }
-        .filter-form select, .filter-form input { padding: 8px; margin-right: 15px; }
-        .filter-form button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
-        .empresa-selector { background: #e7f3ff; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Libro Mayor - {{ empresa.nombre }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/libro_mayor.css' %}">
+
 </head>
 <body>
-    <div class="container">
-        <h1>Libro Mayor - {{ empresa.nombre }}</h1>
-        <a href="{% url 'home' %}">Volver al Menú Principal</a>
-        <hr>
+  <div class="page">
+    <header class="header">
+      <h1 class="brand__title">Libro Mayor</h1>
+      <p class="brand__subtitle">{{ empresa.nombre }}</p>
+      
+      <div class="header__line"></div>
+    </header>
 
-        <!-- Selector de Empresa -->
-        <div class="empresa-selector">
-            <h3>Cambiar de Empresa:</h3>
-            <select id="empresaSelector" onchange="cambiarEmpresa(this.value)">
-                <option value="">-- Seleccionar Empresa --</option>
-                {% for emp in todas_empresas %}
-                    <option value="{{ emp.id }}" {% if emp.id == empresa.id %}selected{% endif %}>
-                        {{ emp.nombre }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
+    <main class="container">
+        <div class="nav-wrapper">
+        <a class="nav-link" href="{% url 'home' %}">← Menú Principal</a>
+      </div>
+      <!-- Selector de Empresa -->
+      <section class="empresa-selector">
+        <h3>Cambiar de Empresa</h3>
+        <select id="empresaSelector" onchange="cambiarEmpresa(this.value)">
+          <option value="">-- Seleccionar Empresa --</option>
+          {% for emp in todas_empresas %}
+            <option value="{{ emp.id }}" {% if emp.id == empresa.id %}selected{% endif %}>
+              {{ emp.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+      </section>
 
-        <div class="filter-form">
-            <h2>Filtrar Libro Mayor</h2>
-            <form method="get" action="{% url 'libro_mayor' empresa_id=empresa.id %}">
-                
-                <!-- Filtro por Cuenta -->
-                <label for="cuenta_id">Seleccionar Cuenta:</label>
-                <select id="cuenta_id" name="cuenta_id">
-                    <option value="">Todas las Cuentas</option>
-                    {% for cuenta in cuentas %}
-                        <option value="{{ cuenta.codigo }}" 
-                            {% if request.GET.cuenta_id == cuenta.codigo %}selected{% endif %}>
-                            {{ cuenta.codigo }} - {{ cuenta.nombre }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <br>
-
-                <!-- Filtro por Fechas -->
-                <label for="fecha_inicio">Fecha de Inicio:</label>
-                <input type="date" id="fecha_inicio" name="fecha_inicio" 
-                       value="{{ request.GET.fecha_inicio }}">
-                <br>
-
-                <label for="fecha_fin">Fecha de Fin:</label>
-                <input type="date" id="fecha_fin" name="fecha_fin" 
-                       value="{{ request.GET.fecha_fin }}">
-                <br>
-
-                <button type="submit">Filtrar</button>
-                
-                <!-- Botón para limpiar filtros -->
-                <a href="{% url 'libro_mayor' empresa_id=empresa.id %}" 
-                   style="background: #6c757d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-left: 10px;">
-                    Limpiar Filtros
-                </a>
-            </form>
-        </div>
-
-        <!-- Información del filtro aplicado -->
-        {% if request.GET.cuenta_id or request.GET.fecha_inicio or request.GET.fecha_fin %}
-        <div style="background: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
-            <strong>Filtros aplicados:</strong>
-            {% if request.GET.cuenta_id %} 
-                Cuenta: {{ request.GET.cuenta_id }} |
-            {% endif %}
-            {% if request.GET.fecha_inicio %} 
-                Desde: {{ request.GET.fecha_inicio }} |
-            {% endif %}
-            {% if request.GET.fecha_fin %} 
-                Hasta: {{ request.GET.fecha_fin }}
-            {% endif %}
-        </div>
-        {% endif %}
-
-        {% if datos_mayor %}
-            {% for item in datos_mayor %}
-                <div class="cuenta-bloque">
-                    <div class="cuenta-header">
-                        {{ item.cuenta.codigo }} - {{ item.cuenta.nombre }}
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Descripción</th>
-                                <th class="numero">Debe</th>
-                                <th class="numero">Haber</th>
-                                <th class="numero">Saldo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for mov in item.movimientos %}
-                                <tr>
-                                    <td>{{ mov.fecha|date:"d/m/Y" }}</td>
-                                    <td>{{ mov.descripcion }}</td>
-                                    <td class="numero">${{ mov.debe|floatformat:2 }}</td>
-                                    <td class="numero">${{ mov.haber|floatformat:2 }}</td>
-                                    <td class="numero">${{ mov.saldo|floatformat:2 }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    <div class="saldo-final">
-                        Saldo Final: ${{ item.saldo_final|floatformat:2 }}
-                    </div>
-                </div>
+      <!-- Formulario de filtros -->
+      <section class="filter-form">
+        <h2>Filtrar Libro Mayor</h2>
+        <form method="get" action="{% url 'libro_mayor' empresa_id=empresa.id %}">
+          <label for="cuenta_id">Seleccionar Cuenta</label>
+          <select id="cuenta_id" name="cuenta_id">
+            <option value="">Todas las Cuentas</option>
+            {% for cuenta in cuentas %}
+              <option value="{{ cuenta.codigo }}" {% if request.GET.cuenta_id == cuenta.codigo %}selected{% endif %}>
+                {{ cuenta.codigo }} - {{ cuenta.nombre }}
+              </option>
             {% endfor %}
-        {% else %}
-            <p>No hay movimientos para mostrar en {{ empresa.nombre }} con los filtros seleccionados.</p>
-        {% endif %}
+          </select>
 
-    </div>
+          <div class="filters-row">
+            <div class="filter-col">
+              <label for="fecha_inicio">Fecha de Inicio</label>
+              <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ request.GET.fecha_inicio }}">
+            </div>
+            <div class="filter-col">
+              <label for="fecha_fin">Fecha de Fin</label>
+              <input type="date" id="fecha_fin" name="fecha_fin" value="{{ request.GET.fecha_fin }}">
+            </div>
+          </div>
 
-    <script>
-        function cambiarEmpresa(empresaId) {
-            if (empresaId) {
-                // Mantener los filtros actuales al cambiar de empresa
-                const urlParams = new URLSearchParams(window.location.search);
-                const nuevaUrl = `/libro-mayor/${empresaId}/?${urlParams.toString()}`;
-                window.location.href = nuevaUrl;
-            }
-        }
-    </script>
+          <div class="filters-actions">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <a class="btn btn-secondary" href="{% url 'libro_mayor' empresa_id=empresa.id %}">Limpiar Filtros</a>
+          </div>
+        </form>
+      </section>
+
+      <!-- Información de filtros aplicados -->
+      {% if request.GET.cuenta_id or request.GET.fecha_inicio or request.GET.fecha_fin %}
+        <div class="filters-info">
+          <strong>Filtros aplicados:</strong>
+          {% if request.GET.cuenta_id %} Cuenta: {{ request.GET.cuenta_id }} |{% endif %}
+          {% if request.GET.fecha_inicio %} Desde: {{ request.GET.fecha_inicio }} |{% endif %}
+          {% if request.GET.fecha_fin %} Hasta: {{ request.GET.fecha_fin }}{% endif %}
+        </div>
+      {% endif %}
+
+      <!-- Cuentas y movimientos -->
+      {% if datos_mayor %}
+        {% for item in datos_mayor %}
+          <section class="cuenta-bloque">
+            <header class="cuenta-header">
+              {{ item.cuenta.codigo }} · {{ item.cuenta.nombre }}
+            </header>
+            <div class="table-wrap">
+              <table class="report-table">
+                <thead>
+                  <tr>
+                    <th class="col-fecha">Fecha</th>
+                    <th class="col-descripcion">Descripción</th>
+                    <th class="col-numero numero">Debe</th>
+                    <th class="col-numero numero">Haber</th>
+                    <th class="col-numero numero">Saldo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for mov in item.movimientos %}
+                    <tr class="mov-row">
+                      <td>{{ mov.fecha|date:"d/m/Y" }}</td>
+                      <td>{{ mov.descripcion }}</td>
+                      <td class="numero">${{ mov.debe|floatformat:2 }}</td>
+                      <td class="numero">${{ mov.haber|floatformat:2 }}</td>
+                      <td class="numero">${{ mov.saldo|floatformat:2 }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div class="saldo-final">
+              Saldo Final: <span>${{ item.saldo_final|floatformat:2 }}</span>
+            </div>
+          </section>
+        {% endfor %}
+      {% else %}
+        <p class="empty">No hay movimientos para mostrar en {{ empresa.nombre }} con los filtros seleccionados.</p>
+      {% endif %}
+    </main>
+
+    <footer class="footer">
+      <small>© {{ now|date:"Y" }} Software Contable · Libro Mayor</small>
+    </footer>
+  </div>
+
+  <script>
+    function cambiarEmpresa(empresaId) {
+      if (empresaId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const nuevaUrl = `/libro-mayor/${empresaId}/?${urlParams.toString()}`;
+        window.location.href = nuevaUrl;
+      }
+    }
+  </script>
 </body>
 </html>

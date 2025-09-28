@@ -1,0 +1,155 @@
+/* ===== Reset & base ===== */
+* { box-sizing: border-box; }
+:root{
+  --bg: #0f1217;
+  --surface: #141923;
+  --surface-2: #192131;
+  --text: #ecf0f6;
+  --muted: #b6c0cf;
+  --line: rgba(236,240,246,0.16);
+
+  --primary: #7a8cff;
+  --accent:  #41c4d9;
+
+  --focus: #ffd36a;
+  --shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+html, body { height: 100%; }
+body{
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(1000px 500px at -10% -10%, rgba(122,140,255,0.18), transparent 60%),
+    radial-gradient(900px 450px at 110% 0%, rgba(65,196,217,0.18), transparent 60%),
+    linear-gradient(180deg, #0c1015, var(--bg) 50%, #0c1015);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.numero, th, td { font-variant-numeric: tabular-nums; }
+:focus { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* ===== Layout ===== */
+.page{ min-height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
+.container{ max-width: 1100px; margin: 0 auto; padding: 0 40px 40px; }
+
+/* ===== Header ===== */
+.header{
+  padding: 24px 40px 8px;
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+.brand__title{ margin: 0; font-size: 1.7rem; font-weight: 800; }
+.nav-wrapper{
+  margin: 14px auto 0;
+  display: flex;
+  justify-content: flex-start;
+}
+.nav-link{
+  text-decoration: none;
+  color: var(--accent);
+  font-weight: 600;
+  background: rgba(65,196,217,0.10);
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(65,196,217,0.25);
+}
+.header__line{
+  margin-top: 16px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line), transparent);
+}
+
+/* ===== Empresa selector ===== */
+.empresa-form{
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: var(--shadow);
+}
+.empresa-form label{ font-weight: 600; margin-right: 8px; }
+.empresa-form select{
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* ===== Tabla ===== */
+.subtitle{ margin: 10px 0 16px; font-size: 1.2rem; }
+.table-wrap{
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+}
+.report-table{
+  width: 100%;
+  border-collapse: collapse;
+}
+.report-table thead th{
+  background: linear-gradient(180deg, rgba(122,140,255,0.16), rgba(20,25,35,0.96));
+  color: #f7f9ff;
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 700;
+}
+.report-table td{
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(236,240,246,0.08);
+}
+.report-table tbody tr:nth-child(odd){ background: rgba(236,240,246,0.035); }
+.report-table tbody tr:nth-child(even){ background: rgba(122,140,255,0.08); }
+
+.totales{ font-weight: 700; background: rgba(122,140,255,0.12); }
+
+.empty{ color: var(--muted); margin-top: 12px; }
+
+/* ===== Footer ===== */
+.footer{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 18px 40px 32px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px){
+  .container{ padding: 0 20px 32px; }
+  .header{ padding: 20px 20px 8px; }
+  .report-table thead th{ font-size: .9rem; }
+  .report-table td{ font-size: .9rem; }
+}
+
+/* ===== Print ===== */
+@media print{
+  @page{ margin: 16mm; }
+  body{ background: #fff; color: #000; }
+  .nav-link{ display: none !important; }
+
+  .container, .header, .footer{
+    max-width: 100%;
+    padding-left: 0; padding-right: 0;
+  }
+  .table-wrap{
+    background: #fff; border: 1px solid #000; box-shadow: none;
+  }
+  .report-table thead th{
+    background: #f0f0f0 !important; color: #000 !important;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .report-table tbody tr:nth-child(odd),
+  .report-table tbody tr:nth-child(even){
+    background: transparent !important;
+  }
+}

@@ -1,205 +1,339 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Ingresar Nuevo Asiento</title>
-    <style>
-        body { font-family: sans-serif; margin: 40px; }
-        .autocomplete-container { position: relative; }
-        .autocomplete-suggestions {
-            position: absolute; border: 1px solid #ddd; background-color: white;
-            max-height: 150px; overflow-y: auto; z-index: 99; width: 100%;
-        }
-        .autocomplete-suggestions div { padding: 8px; cursor: pointer; }
-        .autocomplete-suggestions div:hover { background-color: #f2f2f2; }
-        .totals-container {
-            margin-top: 20px; padding: 15px; background-color: #f2f2f2;
-            border-radius: 5px; text-align: right; font-size: 1.2em; font-weight: bold;
-        }
-        .totals-balanced { color: green; }
-        .totals-unbalanced { color: red; }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/crear_asiento.css' %}?v={% now 'U' %}">
 </head>
-<body>
-    <a class="nav-link" href="{% url 'home' %}">Volver al Menú Principal</a>
-    <h1>Ingresar Nuevo Asiento Contable</h1>
-    <form method="post" id="asientoForm">
-        {% csrf_token %}
-        {{ form.errors }}
-        <h2>Datos del Asiento</h2>
-        <p>
-            <label for="{{ form.empresa.id_for_label }}">Empresa:</label>
-            {{ form.empresa }}
-        </p>
-        <p>
-            <label for="{{ form.numero_asiento.id_for_label }}">Numero asiento:</label>
-            {{ form.numero_asiento }}
-        </p>
-        <p>
-            <label for="{{ form.fecha.id_for_label }}">Fecha:</label>
-            {{ form.fecha }}
-        </p>
-        <p>
-            <label for="{{ form.descripcion.id_for_label }}">Descripcion:</label>
-            {{ form.descripcion }}
-        </p>
-        <hr>
-        <h2>Movimientos Contables</h2>
-        <table id="tablaMovimientos" data-buscar-url="{% url 'buscar_cuentas' %}">
-            <thead>
-                <tr>
-                    <th>Cuenta</th>
-                    <th>Debe</th>
-                    <th>Haber</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        <button type="button" id="agregarFila">Agregar Movimiento</button>
 
-        <div class="totals-container">
-            Total Debe: <span id="total-debe">$0.00</span><br>
-            Total Haber: <span id="total-haber">$0.00</span><br>
-            <span id="balance-status" class="totals-unbalanced">DESBALANCEADO</span>
+<body>
+
+    <center><h1>Ingresar Nuevo Asiento Contable</h1></center>
+
+    <main class="container">
+        <div class="nav-wrapper">
+                <a class="nav-link" href="{% url 'home' %}">← Menú Principal</a>
+            </div>
+        <div class="card">
+            <form method="post" id="asientoForm">
+
+                {% csrf_token %}
+                {{ form.errors }}
+                <h2>Datos del Asiento</h2>
+                <p>
+                    <label for="{{ form.empresa.id_for_label }}">Empresa:</label>
+                    {{ form.empresa }}
+                </p>
+                <p>
+                    <label for="{{ form.numero_asiento.id_for_label }}">Numero asiento:</label>
+                    {{ form.numero_asiento }}
+                </p>
+                <p>
+                    <label for="{{ form.fecha.id_for_label }}">Fecha:</label>
+                    {{ form.fecha }}
+                </p>
+                <p>
+                    <label for="{{ form.descripcion.id_for_label }}">Descripcion:</label>
+                    {{ form.descripcion }}
+                </p>
+                <hr>
+                <h2>Movimientos Contables</h2>
+                <table id="tablaMovimientos" data-buscar-url="{% url 'buscar_cuentas' %}">
+                    <thead>
+                        <tr>
+                            <th>Cuenta</th>
+                            <th>Debe</th>
+                            <th>Haber</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <button type="button" id="agregarFila">Agregar Movimiento</button>
+
+                <div class="totals-container">
+                    Total Debe: <span id="total-debe">$0.00</span><br>
+                    Total Haber: <span id="total-haber">$0.00</span><br>
+                    <span id="balance-status" class="totals-unbalanced">DESBALANCEADO</span>
+                </div>
+
+                <hr>
+                <button type="submit" id="guardarBoton" disabled>Guardar Asiento Completo</button>
+                <p id="errorMensaje" style="display: none;">Debe agregar al menos un movimiento contable.</p>
+            </form>
+
         </div>
 
-        <hr>
-        <button type="submit" id="guardarBoton" disabled>Guardar Asiento Completo</button>
-        <p id="errorMensaje" style="color: red; display: none;">Debe agregar al menos un movimiento contable.</p>
-    </form>
+
+
+    </main>
 
     <script>
-        // --- CAMBIO 2: Se agrega este nuevo bloque para el correlativo ---
-        const empresaSelect = document.getElementById('id_empresa');
-        const numeroAsientoInput = document.getElementById('id_numero_asiento');
+  // ====== Correlativo de asiento por empresa ======
+  const empresaSelect = document.getElementById('id_empresa');
+  const numeroAsientoInput = document.getElementById('id_numero_asiento');
 
-        async function actualizarNumeroAsiento() {
-            const empresaId = empresaSelect.value;
-            if (empresaId) {
-                const response = await fetch(`/siguiente-asiento/${empresaId}/`);
-                const data = await response.json();
-                numeroAsientoInput.value = data.siguiente_numero;
-            } else {
-                numeroAsientoInput.value = '';
-            }
+  async function actualizarNumeroAsiento() {
+    const empresaId = empresaSelect?.value;
+    if (!empresaId) {
+      if (numeroAsientoInput) numeroAsientoInput.value = '';
+      return;
+    }
+    try {
+      const resp = await fetch(`/siguiente-asiento/${empresaId}/`);
+      const data = await resp.json();
+      if (numeroAsientoInput) numeroAsientoInput.value = data.siguiente_numero ?? '';
+    } catch (e) {
+      console.error('Error obteniendo correlativo:', e);
+    }
+  }
+  if (empresaSelect) {
+    empresaSelect.addEventListener('change', actualizarNumeroAsiento);
+    document.addEventListener('DOMContentLoaded', actualizarNumeroAsiento);
+  }
+
+  // ====== Referencias generales ======
+  const form = document.getElementById('asientoForm');
+  const agregarFilaBoton = document.getElementById('agregarFila');
+  const guardarBoton = document.getElementById('guardarBoton');
+  const tablaBody = document.querySelector('#tablaMovimientos tbody');
+  const totalDebeSpan = document.getElementById('total-debe');
+  const totalHaberSpan = document.getElementById('total-haber');
+  const balanceStatusSpan = document.getElementById('balance-status');
+  const errorMensaje = document.getElementById('errorMensaje');
+
+  const toMoney = (n) => `$${Number(n || 0).toFixed(2)}`;
+
+  function calcularTotales() {
+    let totalDebe = 0;
+    let totalHaber = 0;
+    const filas = tablaBody.querySelectorAll('tr');
+
+    filas.forEach((fila) => {
+      const debeInput = fila.querySelector('input[name*="-debe"]');
+      const haberInput = fila.querySelector('input[name*="-haber"]');
+      const d = parseFloat(debeInput?.value || '0');
+      const h = parseFloat(haberInput?.value || '0');
+      if (!isNaN(d)) totalDebe += d;
+      if (!isNaN(h)) totalHaber += h;
+    });
+
+    totalDebeSpan.textContent = toMoney(totalDebe);
+    totalHaberSpan.textContent = toMoney(totalHaber);
+
+    const balanceado = totalDebe > 0 && totalDebe === totalHaber;
+    balanceStatusSpan.textContent = balanceado ? 'BALANCEADO' : 'DESBALANCEADO';
+    balanceStatusSpan.className = balanceado ? 'totals-balanced' : 'totals-unbalanced';
+    guardarBoton.disabled = !balanceado;
+  }
+
+  // ====== Autocomplete con PORTAL que respeta tu CSS ======
+  function crearDropdownPortal() {
+    const dd = document.createElement('div');
+    dd.className = 'autocomplete-suggestions'; // <-- usa tu CSS
+    dd.style.position = 'absolute';            // solo posicionamiento
+    dd.style.display = 'none';                 // se muestra al tener datos
+    dd.style.zIndex = '99999';                 // sobre la tabla
+    document.body.appendChild(dd);
+    return dd;
+  }
+
+  function posicionarDropdown(dropdown, input) {
+    const r = input.getBoundingClientRect();
+    dropdown.style.top = `${window.scrollY + r.bottom}px`;
+    dropdown.style.left = `${window.scrollX + r.left}px`;
+    dropdown.style.width = `${r.width}px`;
+  }
+
+  function abrirDropdown(dropdown, input) {
+    posicionarDropdown(dropdown, input);
+    dropdown.style.display = 'block';
+  }
+
+  function cerrarDropdown(dropdown) {
+    dropdown.style.display = 'none';
+    dropdown.innerHTML = '';
+  }
+
+  function instalarAutocomplete(inputVisible, inputOculto, buscarUrl) {
+    const dropdown = crearDropdownPortal();
+
+    const recolocar = () => {
+      if (dropdown.style.display !== 'none') posicionarDropdown(dropdown, inputVisible);
+    };
+    window.addEventListener('scroll', recolocar, { passive: true });
+    window.addEventListener('resize', recolocar);
+
+    // Cerrar si clic fuera
+    document.addEventListener('click', (e) => {
+      if (e.target !== inputVisible && !dropdown.contains(e.target)) {
+        cerrarDropdown(dropdown);
+      }
+    });
+
+    inputVisible.addEventListener('focus', () => {
+      if (dropdown.innerHTML.trim().length > 0) abrirDropdown(dropdown, inputVisible);
+    });
+
+    inputVisible.addEventListener('input', async function () {
+      const term = this.value.trim();
+      dropdown.innerHTML = '';
+      if (term.length < 2) {
+        cerrarDropdown(dropdown);
+        inputOculto.value = '';
+        return;
+      }
+
+      try {
+        const resp = await fetch(`${buscarUrl}?term=${encodeURIComponent(term)}`);
+        const data = await resp.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          cerrarDropdown(dropdown);
+          return;
         }
-        empresaSelect.addEventListener('change', actualizarNumeroAsiento);
-        document.addEventListener('DOMContentLoaded', actualizarNumeroAsiento);
-        // --- FIN DEL CAMBIO 2 ---
 
-        // --- TU CÓDIGO ANTERIOR (INTACTO) ---
-        const form = document.getElementById('asientoForm');
-        const agregarFilaBoton = document.getElementById('agregarFila');
-        const guardarBoton = document.getElementById('guardarBoton');
-        const tablaBody = document.querySelector('#tablaMovimientos tbody');
-        const totalDebeSpan = document.getElementById('total-debe');
-        const totalHaberSpan = document.getElementById('total-haber');
-        const balanceStatusSpan = document.getElementById('balance-status');
-
-        function calcularTotales() {
-            let totalDebe = 0;
-            let totalHaber = 0;
-            const filas = tablaBody.querySelectorAll('tr');
-
-            filas.forEach(fila => {
-                const debeInput = fila.querySelector('input[name*="-debe"]');
-                const haberInput = fila.querySelector('input[name*="-haber"]');
-                if (debeInput && debeInput.value) totalDebe += parseFloat(debeInput.value);
-                if (haberInput && haberInput.value) totalHaber += parseFloat(haberInput.value);
-            });
-
-            totalDebeSpan.textContent = `$${totalDebe.toFixed(2)}`;
-            totalHaberSpan.textContent = `$${totalHaber.toFixed(2)}`;
-
-            if (totalDebe > 0 && totalDebe === totalHaber) {
-                balanceStatusSpan.textContent = 'BALANCEADO';
-                balanceStatusSpan.className = 'totals-balanced';
-                guardarBoton.disabled = false;
-            } else {
-                balanceStatusSpan.textContent = 'DESBALANCEADO';
-                balanceStatusSpan.className = 'totals-unbalanced';
-                guardarBoton.disabled = true;
+        // Crear ítems (sin estilos inline de color; tu CSS manda)
+        data.forEach((cuenta) => {
+          const it = document.createElement('div'); // se estiliza con .autocomplete-suggestions > div
+          it.textContent = cuenta.text;
+          it.tabIndex = 0; // accesible con teclado
+          it.addEventListener('click', () => {
+            inputVisible.value = cuenta.text;
+            inputOculto.value = cuenta.id;
+            cerrarDropdown(dropdown);
+          });
+          it.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') {
+              inputVisible.value = cuenta.text;
+              inputOculto.value = cuenta.id;
+              cerrarDropdown(dropdown);
             }
-        }
-
-        agregarFilaBoton.addEventListener('click', function() {
-            const numFila = tablaBody.rows.length;
-            const nuevaFila = tablaBody.insertRow();
-            
-            const celdaCuenta = nuevaFila.insertCell();
-            celdaCuenta.classList.add('autocomplete-container');
-            const inputVisible = document.createElement('input');
-            inputVisible.placeholder = 'Código o nombre de cuenta';
-            inputVisible.classList.add('cuenta-autocomplete');
-            inputVisible.required = true;
-            const inputOculto = document.createElement('input');
-            inputOculto.type = 'hidden';
-            inputOculto.name = `movimientos-${numFila}-cuenta`;
-            const suggestionsDiv = document.createElement('div');
-            suggestionsDiv.classList.add('autocomplete-suggestions');
-            celdaCuenta.appendChild(inputVisible);
-            celdaCuenta.appendChild(inputOculto);
-            celdaCuenta.appendChild(suggestionsDiv);
-
-            inputVisible.addEventListener('input', async function() {
-                const term = this.value;
-                suggestionsDiv.innerHTML = '';
-                if (term.length < 2) return;
-
-                const tabla = document.getElementById('tablaMovimientos');
-                const buscarUrl = tabla.dataset.buscarUrl;
-                const response = await fetch(`${buscarUrl}?term=${term}`);
-                const data = await response.json();
-
-                data.forEach(cuenta => {
-                    const suggestion = document.createElement('div');
-                    suggestion.textContent = cuenta.text;
-                    suggestion.addEventListener('click', function() {
-                        inputVisible.value = cuenta.text;
-                        inputOculto.value = cuenta.id;
-                        suggestionsDiv.innerHTML = '';
-                    });
-                    suggestionsDiv.appendChild(suggestion);
-                });
-            });
-            
-            const celdaDebe = nuevaFila.insertCell();
-            const inputDebe = document.createElement('input');
-            inputDebe.type = 'number'; inputDebe.step = '0.01'; inputDebe.name = `movimientos-${numFila}-debe`; inputDebe.value = '0';
-            
-            const celdaHaber = nuevaFila.insertCell();
-            const inputHaber = document.createElement('input');
-            inputHaber.type = 'number'; inputHaber.step = '0.01'; inputHaber.name = `movimientos-${numFila}-haber`; inputHaber.value = '0';
-            
-            inputDebe.addEventListener('input', function() { if (this.value && parseFloat(this.value) > 0) { inputHaber.disabled = true; inputHaber.value = '0'; } else { inputHaber.disabled = false; } calcularTotales(); });
-            inputHaber.addEventListener('input', function() { if (this.value && parseFloat(this.value) > 0) { inputDebe.disabled = true; inputDebe.value = '0'; } else { inputDebe.disabled = false; } calcularTotales(); });
-
-            celdaDebe.appendChild(inputDebe);
-            celdaHaber.appendChild(inputHaber);
-            
-            const celdaAccion = nuevaFila.insertCell();
-            celdaAccion.innerHTML = '<button type="button" onclick="eliminarFila(this)">Eliminar</button>';
-            
-            calcularTotales();
+          });
+          dropdown.appendChild(it);
         });
 
-        function eliminarFila(boton) {
-            boton.closest('tr').remove();
-            calcularTotales();
-        }
-        
-        form.addEventListener('submit', function(event) {
-            if (tablaBody.rows.length === 0) {
-                event.preventDefault();
-                errorMensaje.style.display = 'block';
-            } else {
-                errorMensaje.style.display = 'none';
-            }
-        });
-        
-        calcularTotales();
-    </script>
+        abrirDropdown(dropdown, inputVisible);
+      } catch (e) {
+        console.error('Error buscando cuentas:', e);
+        cerrarDropdown(dropdown);
+      }
+    });
+
+    const ro = new ResizeObserver(() => recolocar());
+    ro.observe(document.body);
+  }
+
+  // ====== Añadir filas ======
+  function agregarFila() {
+    const numFila = tablaBody.rows.length;
+    const nuevaFila = tablaBody.insertRow();
+
+    // ---- Cuenta (con autocomplete) ----
+    const celdaCuenta = nuevaFila.insertCell();
+    celdaCuenta.classList.add('autocomplete-container');
+
+    const inputVisible = document.createElement('input');
+    inputVisible.placeholder = 'Código o nombre de cuenta';
+    inputVisible.classList.add('cuenta-autocomplete');
+    inputVisible.required = true;
+
+    const inputOculto = document.createElement('input');
+    inputOculto.type = 'hidden';
+    inputOculto.name = `movimientos-${numFila}-cuenta`;
+
+    celdaCuenta.appendChild(inputVisible);
+    celdaCuenta.appendChild(inputOculto);
+
+    const tabla = document.getElementById('tablaMovimientos');
+    const buscarUrl = tabla.dataset.buscarUrl;
+    instalarAutocomplete(inputVisible, inputOculto, buscarUrl);
+
+    // ---- Debe / Haber ----
+    const celdaDebe = nuevaFila.insertCell();
+    const inputDebe = document.createElement('input');
+    inputDebe.type = 'number';
+    inputDebe.step = '0.01';
+    inputDebe.min = '0';
+    inputDebe.name = `movimientos-${numFila}-debe`;
+    inputDebe.value = '0';
+
+    const celdaHaber = nuevaFila.insertCell();
+    const inputHaber = document.createElement('input');
+    inputHaber.type = 'number';
+    inputHaber.step = '0.01';
+    inputHaber.min = '0';
+    inputHaber.name = `movimientos-${numFila}-haber`;
+    inputHaber.value = '0';
+
+    inputDebe.addEventListener('input', function () {
+      const val = parseFloat(this.value || '0');
+      if (val > 0) {
+        inputHaber.disabled = true;
+        inputHaber.value = '0';
+      } else {
+        inputHaber.disabled = false;
+      }
+      calcularTotales();
+    });
+
+    inputHaber.addEventListener('input', function () {
+      const val = parseFloat(this.value || '0');
+      if (val > 0) {
+        inputDebe.disabled = true;
+        inputDebe.value = '0';
+      } else {
+        inputDebe.disabled = false;
+      }
+      calcularTotales();
+    });
+
+    celdaDebe.appendChild(inputDebe);
+    celdaHaber.appendChild(inputHaber);
+
+    // ---- Acción (eliminar) ----
+    const celdaAccion = nuevaFila.insertCell();
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Eliminar';
+    btn.addEventListener('click', function () {
+      eliminarFila(btn);
+    });
+    celdaAccion.appendChild(btn);
+
+    calcularTotales();
+  }
+
+  if (agregarFilaBoton) {
+    agregarFilaBoton.addEventListener('click', agregarFila);
+  }
+
+  // ====== Eliminar fila ======
+  function eliminarFila(boton) {
+    const tr = boton.closest('tr');
+    if (tr) tr.remove();
+    calcularTotales();
+  }
+  window.eliminarFila = eliminarFila; // por si hay handler inline
+
+  // ====== Validación al enviar ======
+  if (form) {
+    form.addEventListener('submit', function (event) {
+      if (tablaBody.rows.length === 0) {
+        event.preventDefault();
+        if (errorMensaje) errorMensaje.style.display = 'block';
+      } else {
+        if (errorMensaje) errorMensaje.style.display = 'none';
+      }
+    });
+  }
+
+  calcularTotales();
+</script>
+
+
 </body>
+
 </html>

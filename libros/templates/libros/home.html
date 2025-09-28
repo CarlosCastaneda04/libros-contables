@@ -1,100 +1,207 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Inicio - Software Contable</title>
-    <style>
-        body { font-family: sans-serif; margin: 40px; background-color: #f4f4f9; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1, h2 { color: #333; text-align: center; }
-        .menu { list-style: none; padding: 0; }
-        .menu li { margin-bottom: 15px; }
-        .menu a { text-decoration: none; background-color: #007bff; color: white; padding: 15px; display: block; border-radius: 5px; text-align: center; font-size: 1.2em; transition: background-color 0.3s; }
-        .menu a:hover { background-color: #0056b3; }
-        .report-form { border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #f9f9f9; }
-        .report-form label { display: block; margin-bottom: 10px; font-weight: bold; }
-        .report-form select { width: 100%; padding: 8px; margin-bottom: 10px; }
-        .report-form button { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; }
-        
-        /* --- ESTILOS NUEVOS --- */
-        .gestion-empresas { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; }
-        .lista-empresas { list-style: none; padding: 0; }
-        .lista-empresas li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        .delete-btn { background: none; border: none; color: red; cursor: pointer; font-size: 1em; }
-        .messages { list-style: none; padding: 0; margin-bottom: 20px; }
-        .messages .success { border: 1px solid green; background-color: #d4edda; padding: 10px; border-radius: 5px; }
-        .messages .error { border: 1px solid red; background-color: #f8d7da; padding: 10px; border-radius: 5px; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Inicio - Software Contable</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v={% now 'U' %}">
 </head>
+
 <body>
-    <div class="container">
-        {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-            <li class="{{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+  <!-- Header -->
+  <header class="site-header">
+    <div class="brand" aria-label="Marca">
+      <div class="logo" aria-hidden="true">SC</div>
+      <div class="titles">
+        <h1>Software Contable</h1>
+        <p class="subtitle">Gestión ágil de asientos, libros y consultas</p>
+      </div>
+    </div>
+  </header>
 
-        <h1>Menú Principal</h1>
-        <ul class="menu">
-            <li><a href="{% url 'crear_asiento' %}">1. Ingresar Nuevo Asiento Contable</a></li>
-            <li><a href="{% url 'lista_cuentas' %}">2. Verificar Catálogo de Cuentas</a></li>
-            <li>
-                <div class="report-form">
-                    <form id="formLibroDiario">
-                        <label for="empresa-select-diario">3. Generar Libro Diario</label>
-                        <select name="empresa" id="empresa-select-diario">
-                            {% for empresa in empresas %}
-                                <option value="{{ empresa.id }}">{{ empresa.nombre }}</option>
-                            {% empty %}
-                                <option disabled>No hay empresas registradas</option>
-                            {% endfor %}
-                        </select>
-                        <button type="submit">Generar Reporte</button>
-                    </form>
-                </div>
-            </li>
-            <li><a href="{% url 'libro_mayor' empresa_id=2 %}">4. Generar Libro Mayor</a></li>
-            <li><a href="{% url 'balance_comprobacion' empresa_id=1 %}">5. Balance de comprobación</a></lib>
-            <li><a href="{% url 'consultas' %}">6. Consultar Transacciones</a></li>
-        </ul>
-        
-        <div class="gestion-empresas">
-            <h2>Gestionar Empresas</h2>
-            <form action="{% url 'agregar_empresa' %}" method="post" style="margin-bottom: 20px;">
-                {% csrf_token %}
-                <input type="text" name="nombre_empresa" placeholder="Nombre de la nueva empresa" required style="width: 70%; padding: 8px;">
-                <button type="submit" style="padding: 8px;">Agregar Empresa</button>
-            </form>
+  <main class="container">
+    {% if messages %}
+    <ul class="messages" role="status" aria-live="polite">
+      {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
 
-            <h3>Empresas Registradas</h3>
-            <ul class="lista-empresas">
+    <div>
+      <!-- Hero -->
+      <section class="hero" aria-labelledby="hero-title">
+        <h2 id="hero-title">Menú principal</h2>
+        <p>Accede rápidamente a las funciones clave del sistema. Todo en un solo lugar, con una interfaz limpia y
+          enfocada.</p>
+      </section>
+    </div>
+
+    <!-- Layout de dos columnas -->
+    <div class="grid">
+      <!-- Columna izquierda -->
+      <section class="left-rail">
+
+
+        <!-- Acciones -->
+        <section class="actions-grid" aria-label="Acciones principales">
+          <!-- 1. Ingresar Nuevo Asiento Contable -->
+          <a class="action-card" href="{% url 'crear_asiento' %}">
+            <span class="action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M7 2h10a2 2 0 0 1 2 2v16l-3-2-3 2-3-2-3 2V4a2 2 0 0 1 2-2zm3 7V7h4v2h2v2h-2v2h-4v-2H8V9h2z" />
+              </svg>
+            </span>
+            <div class="action-content">
+              <h3>Ingresar nuevo asiento</h3>
+              <p>Registra movimientos contables de forma rápida.</p>
+            </div>
+          </a>
+
+          <!-- 2. Verificar Catálogo de Cuentas -->
+          <a class="action-card" href="{% url 'lista_cuentas' %}">
+            <span class="action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h16v2H4v-2z" />
+              </svg>
+            </span>
+            <div class="action-content">
+              <h3>Catálogo de cuentas</h3>
+              <p>Consulta y verifica tu plan de cuentas.</p>
+            </div>
+          </a>
+
+          <!-- 4. Generar Libro Mayor -->
+          <a class="action-card" href="{% url 'libro_mayor' empresa_id=2 %}">
+            <span class="action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M6 3h11a3 3 0 0 1 3 3v13H8a2 2 0 0 1-2-2V3zm0 0v14a2 2 0 0 0 2 2" />
+              </svg>
+            </span>
+            <div class="action-content">
+              <h3>Generar libro mayor</h3>
+              <p>Consolida saldos por cuenta.</p>
+            </div>
+          </a>
+
+          <!-- 5. Balance de comprobación -->
+          <a class="action-card" href="{% url 'balance_comprobacion' empresa_id=1 %}">
+            <span class="action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path
+                  d="M7 2h10a2 2 0 0 1 2 2v16H5V4a2 2 0 0 1 2-2zm2 4v2h6V6H9zm-1 5h2v2H8v-2zm3 0h2v2h-2v-2zm3 0h2v2h-2v-2zM8 14h2v2H8v-2zm3 0h2v2h-2v-2zm3 0h2v2h-2v-2z" />
+              </svg>
+            </span>
+            <div class="action-content">
+              <h3>Balance de comprobación</h3>
+              <p>Verifica saldos y descuadres.</p>
+            </div>
+          </a>
+
+          <!-- 6. Consultar Transacciones -->
+          <a class="action-card" href="{% url 'consultas' %}">
+            <span class="action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path
+                  d="M10 18a8 8 0 1 1 5.293-2.707L21 21l-1.414 1.414-5.707-5.707A8 8 0 0 1 10 18zm0-2a6 6 0 1 0 0-12 6 6 0 0 0 0 12z" />
+              </svg>
+            </span>
+            <div class="action-content">
+              <h3>Consultar transacciones</h3>
+              <p>Filtra y encuentra movimientos específicos.</p>
+            </div>
+          </a>
+        </section>
+      </section>
+
+      <!-- Columna derecha -->
+      <section class="right-rail">
+        <!-- 3. Generar Libro Diario -->
+        <section class="report-card" aria-labelledby="libro-diario-title">
+          <h3 id="libro-diario-title">Generar Libro Diario</h3>
+          <form id="formLibroDiario" class="report-form">
+            <label for="empresa-select-diario" class="sr-only">Seleccione una empresa</label>
+            <div class="select-wrap">
+              <select name="empresa" id="empresa-select-diario" required>
                 {% for empresa in empresas %}
-                <li>
-                    <span>{{ empresa.nombre }}</span>
-                    <form action="{% url 'eliminar_empresa' empresa.id %}" method="post" onsubmit="return confirm('¿Estás seguro? Esta acción no se puede deshacer.');">
-                        {% csrf_token %}
-                        <button type="submit" class="delete-btn">Eliminar</button>
-                    </form>
-                </li>
+                <option value="{{ empresa.id }}">{{ empresa.nombre }}</option>
                 {% empty %}
-                <li>No hay empresas registradas.</li>
+                <option disabled>No hay empresas registradas</option>
                 {% endfor %}
-            </ul>
-        </div>
-        </div>
+              </select>
+              <span class="select-icon" aria-hidden="true">▾</span>
+            </div>
+            <button type="submit" class="btn-primary">Generar reporte</button>
+          </form>
+        </section>
 
-    <script>
-        document.getElementById('formLibroDiario').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const empresaId = document.getElementById('empresa-select-diario').value;
-            if (empresaId) {
-                window.location.href = `/libro-diario/${empresaId}/`;
-            } else {
-                alert("Por favor, seleccione una empresa.");
-            }
+        <!-- Gestión de Empresas -->
+        <section class="report-card empresas-card" aria-labelledby="gestion-empresas-title">
+          <h3 id="gestion-empresas-title">Gestionar Empresas</h3>
+
+          <form action="{% url 'agregar_empresa' %}" method="post" class="empresa-form">
+            {% csrf_token %}
+            <input type="text" name="nombre_empresa" placeholder="Nombre de la nueva empresa" required />
+            <button type="submit" class="btn-primary">Agregar</button>
+          </form>
+
+          <h4 class="empresas-title">Empresas registradas</h4>
+          <ul class="lista-empresas">
+            {% for empresa in empresas %}
+            <li>
+              <span>{{ empresa.nombre }}</span>
+              <form action="{% url 'eliminar_empresa' empresa.id %}" method="post"
+                onsubmit="return confirm('¿Estás seguro? Esta acción no se puede deshacer.');">
+                {% csrf_token %}
+                <button type="submit" class="delete-btn" aria-label="Eliminar {{ empresa.nombre }}">Eliminar</button>
+              </form>
+            </li>
+            {% empty %}
+            <li>No hay empresas registradas.</li>
+            {% endfor %}
+          </ul>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <small>© Software Contable · Hecho con claridad y precisión</small>
+  </footer>
+
+  <script>
+    document.getElementById('formLibroDiario').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const empresaId = document.getElementById('empresa-select-diario').value;
+      if (empresaId) {
+        window.location.href = `/libro-diario/${empresaId}/`;
+      } else {
+        alert("Por favor, seleccione una empresa.");
+      }
+    });
+
+    (function syncEmpresasCardHeight() {
+      const left = document.querySelector('.left-rail');
+      const card = document.querySelector('.empresas-card');
+      if (!left || !card) return;
+
+      function apply() {
+        card.style.maxHeight = left.offsetHeight + 'px';
+      }
+      // Inicial, resize y después de agregar empresa
+      window.addEventListener('load', apply);
+      window.addEventListener('resize', apply);
+      // Recalcula tras enviar el form de empresa (por si la lista cambia)
+      const form = document.querySelector('.empresa-form');
+      if (form) {
+        form.addEventListener('submit', function () {
+          setTimeout(apply, 300);
         });
-    </script>
+      }
+    })();
+  </script>
 </body>
+
 </html>
