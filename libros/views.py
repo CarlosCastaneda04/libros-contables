@@ -150,8 +150,6 @@ from django.shortcuts import render
 from django.db import connection # ¡Asegúrate de importar 'connection'!
 # from .models import Cuenta # Ya no es necesario para esta vista específica
 
-# ... (tus otras vistas) ...
-
 def lista_cuentas(request):
     # Creamos una lista vacía para guardar los resultados
     cuentas_list = []
@@ -314,72 +312,72 @@ def balance_comprobacion(request, empresa_id=None):
 
 
 
-def libro_mayor(request, empresa_id):
-    empresa = get_object_or_404(Empresa, id=empresa_id)
-    
-    # Obtener TODAS las empresas para el selector
+# libros/views.py
+def libro_mayor(request, empresa_id=None):
     todas_empresas = Empresa.objects.all()
-    
-    # Obtener parámetros del filtro
+    empresa_seleccionada = None
+
+    # Determina qué empresa mostrar
+    if empresa_id:
+        empresa_seleccionada = get_object_or_404(Empresa, id=empresa_id)
+    elif todas_empresas.exists():
+        # Si no se especifica un ID, redirige a la URL de la primera empresa
+        # Esto mantiene la URL consistente y evita lógica duplicada.
+        primera_empresa = todas_empresas.first()
+        return redirect('libro_mayor', empresa_id=primera_empresa.id)
+
+    # Si no hay empresas, se mostrará una página vacía pero funcional
+
+    # --- Tu lógica de filtros y cálculos (integrada aquí) ---
     cuenta_codigo = request.GET.get('cuenta_id')
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
-    
-    # Obtener TODAS las cuentas disponibles
+
     cuentas = Cuenta.objects.all()
-    
-    # Base query - filtrar por empresa
-    movimientos = MovimientoContable.objects.filter(
-        asiento_diario__empresa=empresa
-    ).select_related('asiento_diario', 'cuenta')
-    
-    # Aplicar filtros
-    if cuenta_codigo:
-        movimientos = movimientos.filter(cuenta__codigo=cuenta_codigo)
-    
-    if fecha_inicio:
-        movimientos = movimientos.filter(asiento_diario__fecha__gte=fecha_inicio)
-    
-    if fecha_fin:
-        movimientos = movimientos.filter(asiento_diario__fecha__lte=fecha_fin)
-    
-    # Agrupar movimientos por cuenta
     datos_mayor = []
-    
-    # Obtener cuentas únicas que tienen movimientos con los filtros aplicados
-    cuentas_con_movimientos = Cuenta.objects.filter(
-        movimientocontable__in=movimientos
-    ).distinct()
-    
-    for cuenta in cuentas_con_movimientos:
-        movimientos_cuenta = movimientos.filter(cuenta=cuenta).order_by('asiento_diario__fecha', 'id')
-        
-        saldo_acumulado = 0
-        movimientos_con_saldo = []
-        
-        for mov in movimientos_cuenta:
-            saldo_acumulado += mov.debe - mov.haber
-            movimientos_con_saldo.append({
-                'fecha': mov.asiento_diario.fecha,
-                'descripcion': mov.asiento_diario.descripcion,
-                'debe': mov.debe,
-                'haber': mov.haber,
-                'saldo': saldo_acumulado
+
+    if empresa_seleccionada:
+        movimientos = MovimientoContable.objects.filter(
+            asiento_diario__empresa=empresa_seleccionada
+        ).select_related('asiento_diario', 'cuenta')
+
+        if cuenta_codigo:
+            movimientos = movimientos.filter(cuenta__codigo=cuenta_codigo)
+        if fecha_inicio:
+            movimientos = movimientos.filter(asiento_diario__fecha__gte=fecha_inicio)
+        if fecha_fin:
+            movimientos = movimientos.filter(asiento_diario__fecha__lte=fecha_fin)
+
+        cuentas_con_movimientos = Cuenta.objects.filter(
+            movimientocontable__in=movimientos
+        ).distinct()
+
+        for cuenta in cuentas_con_movimientos:
+            movimientos_cuenta = movimientos.filter(cuenta=cuenta).order_by('asiento_diario__fecha', 'id')
+            saldo_acumulado = 0
+            movimientos_con_saldo = []
+            for mov in movimientos_cuenta:
+                saldo_acumulado += mov.debe - mov.haber
+                movimientos_con_saldo.append({
+                    'fecha': mov.asiento_diario.fecha,
+                    'descripcion': mov.asiento_diario.descripcion,
+                    'debe': mov.debe,
+                    'haber': mov.haber,
+                    'saldo': saldo_acumulado
+                })
+            datos_mayor.append({
+                'cuenta': cuenta,
+                'movimientos': movimientos_con_saldo,
+                'saldo_final': saldo_acumulado
             })
-        
-        datos_mayor.append({
-            'cuenta': cuenta,
-            'movimientos': movimientos_con_saldo,
-            'saldo_final': saldo_acumulado
-        })
-    
+
     context = {
-        'empresa': empresa,
-        'todas_empresas': todas_empresas,  # Nuevo: todas las empresas para el selector
+        'empresa': empresa_seleccionada,
+        'todas_empresas': todas_empresas,
         'cuentas': cuentas,
         'datos_mayor': datos_mayor,
     }
-    
+
     return render(request, 'libros/libro_mayor.html', context)
 
 def consultas(request):
