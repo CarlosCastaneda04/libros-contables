@@ -17,8 +17,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='django-insecure-ua2#x*o%^ecx^
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # El modo DEBUG se deshabilita automáticamente en Render.
-DEBUG = 'RENDER' not in os.environ
-
+DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 ALLOWED_HOSTS = []
 
 # Render proveerá el nombre del host en una variable de entorno.
