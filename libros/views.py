@@ -24,6 +24,8 @@ def home(request):
     }
     return render(request, 'libros/home.html', context)
 
+
+
 def agregar_empresa(request):
     if request.method == 'POST':
         nombre_empresa = request.POST.get('nombre_empresa')
