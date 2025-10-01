@@ -17,6 +17,7 @@ urlpatterns = [
     path('empresa/eliminar/<int:empresa_id>/', views.eliminar_empresa, name='eliminar_empresa'),
     path('balance-comprobacion/', views.balance_comprobacion, name='balance_comprobacion_general'),
     path('libro-mayor/', views.libro_mayor, name='libro_mayor_general'),
+    path('libro-mayor/<int:empresa_id>/', views.libro_mayor, name='libro_mayor'),
     path('balance-comprobacion/<int:empresa_id>/', views.balance_comprobacion, name='balance_comprobacion'),
     path('empresas/', views.lista_empresas, name='lista_empresas'),
 ]
