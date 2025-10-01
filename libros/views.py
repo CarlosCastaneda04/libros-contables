@@ -312,46 +312,43 @@ def balance_comprobacion(request, empresa_id=None):
 
 
 
-# libros/views.py
 def libro_mayor(request, empresa_id=None):
     todas_empresas = Empresa.objects.all()
     empresa_seleccionada = None
-
+    
     # Determina qué empresa mostrar
     if empresa_id:
         empresa_seleccionada = get_object_or_404(Empresa, id=empresa_id)
     elif todas_empresas.exists():
-        # Si no se especifica un ID, redirige a la URL de la primera empresa
-        # Esto mantiene la URL consistente y evita lógica duplicada.
+        # Si no se especifica un ID en la URL, redirige a la URL de la primera empresa.
+        # Esto soluciona el NoReverseMatch.
         primera_empresa = todas_empresas.first()
         return redirect('libro_mayor', empresa_id=primera_empresa.id)
-
-    # Si no hay empresas, se mostrará una página vacía pero funcional
-
+    
     # --- Tu lógica de filtros y cálculos (integrada aquí) ---
     cuenta_codigo = request.GET.get('cuenta_id')
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
-
-    cuentas = Cuenta.objects.all()
+    
+    cuentas = Cuenta.objects.all() # Para el dropdown de filtros
     datos_mayor = []
 
     if empresa_seleccionada:
         movimientos = MovimientoContable.objects.filter(
             asiento_diario__empresa=empresa_seleccionada
         ).select_related('asiento_diario', 'cuenta')
-
+        
         if cuenta_codigo:
             movimientos = movimientos.filter(cuenta__codigo=cuenta_codigo)
         if fecha_inicio:
             movimientos = movimientos.filter(asiento_diario__fecha__gte=fecha_inicio)
         if fecha_fin:
             movimientos = movimientos.filter(asiento_diario__fecha__lte=fecha_fin)
-
+        
         cuentas_con_movimientos = Cuenta.objects.filter(
             movimientocontable__in=movimientos
         ).distinct()
-
+        
         for cuenta in cuentas_con_movimientos:
             movimientos_cuenta = movimientos.filter(cuenta=cuenta).order_by('asiento_diario__fecha', 'id')
             saldo_acumulado = 0
@@ -370,14 +367,14 @@ def libro_mayor(request, empresa_id=None):
                 'movimientos': movimientos_con_saldo,
                 'saldo_final': saldo_acumulado
             })
-
+    
     context = {
         'empresa': empresa_seleccionada,
         'todas_empresas': todas_empresas,
         'cuentas': cuentas,
         'datos_mayor': datos_mayor,
     }
-
+    
     return render(request, 'libros/libro_mayor.html', context)
 
 def consultas(request):
