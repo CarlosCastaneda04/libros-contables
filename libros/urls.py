@@ -20,6 +20,21 @@ urlpatterns = [
     path('libro-mayor/<int:empresa_id>/', views.libro_mayor, name='libro_mayor'),
     path('balance-comprobacion/<int:empresa_id>/', views.balance_comprobacion, name='balance_comprobacion'),
     path('empresas/', views.lista_empresas, name='lista_empresas'),
+    # --- INICIO DE NUEVAS URLS PARA LA ACTIVIDAD III ---
+
+    # 1. Página del submenú de reportes financieros
+    path('reportes-financieros/', views.reportes_financieros, name='reportes_financieros'),
+    
+    # 2. El nuevo Balance de Comprobación (usaremos un nombre de vista diferente)
+    path('nuevo-balance-comprobacion/<int:empresa_id>/', views.nuevo_balance_comprobacion, name='nuevo_balance_comprobacion'),
+    
+    # 3. El Estado de Resultados
+    path('estado-resultados/<int:empresa_id>/', views.estado_resultados, name='estado_resultados'),
+    
+    # 4. El Balance General
+    path('balance-general/<int:empresa_id>/', views.balance_general, name='balance_general'),
+    
+    # --- FIN DE NUEVAS URLS ---
 ]
     
     

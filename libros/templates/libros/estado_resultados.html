@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estado de Resultados - {{ empresa.nombre }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v={% now 'U' %}">
+    <style>
+        .report-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .report-table th, .report-table td { padding: 10px; text-align: left; }
+        .report-table thead th { border-bottom: 2px solid #333; }
+        .numero { text-align: right; }
+        .categoria-header { font-size: 1.2em; font-weight: bold; padding-top: 20px; }
+        .total-row td { border-top: 1px solid #ccc; font-weight: bold; }
+        .utilidad-row td { border-top: 2px solid #333; font-size: 1.1em; font-weight: bold; background-color: #f4f4f9; }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <a href="{% url 'reportes_financieros' %}" style="margin-bottom: 20px; display: inline-block;">← Volver a Reportes</a>
+
+        <div class="header" style="text-align: center; padding-bottom: 20px;">
+            <h1>{{ empresa.nombre }}</h1>
+            <h2>Estado de Resultados</h2>
+        </div>
+
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Cuenta</th>
+                    <th class="numero">Saldo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="categoria-header">
+                    <td colspan="2">Ingresos (Código 5)</td>
+                </tr>
+                {% for cuenta in cuentas_ingresos %}
+                    <tr>
+                        <td style="padding-left: 20px;">{{ cuenta.codigo }} - {{ cuenta.nombre }}</td>
+                        <td class="numero">${{ cuenta.saldo|floatformat:2 }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="2" style="padding-left: 20px;">No hay ingresos registrados.</td></tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td><strong>Total de Ingresos</strong></td>
+                    <td class="numero"><strong>${{ total_ingresos|floatformat:2 }}</strong></td>
+                </tr>
+
+                <tr class="categoria-header">
+                    <td colspan="2">Costos y Gastos (Código 4)</td>
+                </tr>
+                {% for cuenta in cuentas_gastos %}
+                    <tr>
+                        <td style="padding-left: 20px;">{{ cuenta.codigo }} - {{ cuenta.nombre }}</td>
+                        <td class="numero">${{ cuenta.saldo|floatformat:2 }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="2" style="padding-left: 20px;">No hay costos ni gastos registrados.</td></tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td><strong>Total de Costos y Gastos</strong></td>
+                    <td class="numero"><strong>${{ total_gastos|floatformat:2 }}</strong></td>
+                </tr>
+
+                <tr class="utilidad-row">
+                    <td><strong>Utilidad (Pérdida) del Ejercicio</strong></td>
+                    <td class="numero"><strong>${{ utilidad|floatformat:2 }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

@@ -1,0 +1,106 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Reportes Financieros - SoftConta</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v={% now 'U' %}">
+    <link rel="stylesheet" href="{% static 'css/balance_comprobacion.css' %}">
+    <link rel="stylesheet" href="/css/balance_comprobacion.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand" aria-label="Marca">
+            <img class="logo" src="{% static 'css/imagenes/logo.jpeg' %}" alt="Logo de SoftConta">
+            <div class="titles">
+                <h1>SoftConta</h1>
+                <p class="subtitle">Gestión ágil de asientos, libros y consultas</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+         <div class="nav-wrapper">
+          <a class="nav-link" href="{% url 'home' %}">← Menú Principal</a>
+        </div>
+        <section class="hero" aria-labelledby="hero-title">
+            <h2 id="hero-title">Reportes Financieros</h2>
+            <p>Genera los estados financieros clave para tu empresa.</p>
+        </section>
+
+        <div class="grid">
+            <section class="right-rail" style="width: 100%;">
+
+                <section class="report-card" aria-labelledby="balance-title">
+                    <h3 id="balance-title">Balance de Comprobación</h3>
+                    <form id="formBalance" class="report-form">
+                        <label for="empresa-select-balance" class="sr-only">Seleccione una empresa</label>
+                        <div class="select-wrap">
+                            <select name="empresa" id="empresa-select-balance" required>
+                                {% for empresa in empresas %}
+                                    <option value="{{ empresa.id }}">{{ empresa.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-primary">Generar</button>
+                    </form>
+                </section>
+
+                <section class="report-card" aria-labelledby="er-title">
+                    <h3 id="er-title">Estado de Resultados</h3>
+                    <form id="formER" class="report-form">
+                        <div class="select-wrap">
+                            <select name="empresa" id="empresa-select-er" required>
+                                {% for empresa in empresas %}
+                                    <option value="{{ empresa.id }}">{{ empresa.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-primary">Generar</button>
+                    </form>
+                </section>
+
+                <section class="report-card" aria-labelledby="bg-title">
+                    <h3 id="bg-title">Balance General</h3>
+                    <form id="formBG" class="report-form">
+                        <div class="select-wrap">
+                            <select name="empresa" id="empresa-select-bg" required>
+                                {% for empresa in empresas %}
+                                    <option value="{{ empresa.id }}">{{ empresa.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-primary">Generar</button>
+                    </form>
+                </section>
+
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // Script para el Balance de Comprobación
+        document.getElementById('formBalance').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const empresaId = document.getElementById('empresa-select-balance').value;
+            // Apunta a la URL del "nuevo" balance que creamos
+            window.location.href = `/nuevo-balance-comprobacion/${empresaId}/`;
+        });
+
+        // Script para el Estado de Resultados
+        document.getElementById('formER').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const empresaId = document.getElementById('empresa-select-er').value;
+            window.location.href = `/estado-resultados/${empresaId}/`;
+        });
+
+        // Script para el Balance General
+        document.getElementById('formBG').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const empresaId = document.getElementById('empresa-select-bg').value;
+            window.location.href = `/balance-general/${empresaId}/`;
+        });
+    </script>
+</body>
+</html>

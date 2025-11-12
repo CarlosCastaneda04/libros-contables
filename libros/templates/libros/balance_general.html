@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Balance General - {{ empresa.nombre }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v={% now 'U' %}">
+    <style>
+        .report-table { width: 100%; font-size: 1.1em; }
+        .report-table td { padding: 12px; }
+        .numero { text-align: right; }
+        .categoria-header { 
+            font-size: 1.3em; 
+            font-weight: bold; 
+            padding-top: 20px; 
+            border-bottom: 2px solid #333; 
+        }
+        .total-row td { 
+            border-top: 1px solid #ccc; 
+            border-bottom: 2px double #333; 
+            font-weight: bold; 
+            font-size: 1.1em;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+        .indent { padding-left: 30px !important; }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <a href="{% url 'reportes_financieros' %}" style="margin-bottom: 20px; display: inline-block;">← Volver a Reportes</a>
+
+        <div class="header" style="text-align: center; padding-bottom: 20px;">
+            <h1>{{ empresa.nombre }}</h1>
+            <h2>Balance General</h2>
+        </div>
+
+        <table class="report-table">
+            <tr class="categoria-header">
+                <td>ACTIVO</td>
+                <td class="numero"></td>
+            </tr>
+            <tr>
+                <td class="indent">Total de Activos</td>
+                <td class="numero">${{ total_activos|floatformat:2 }}</td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>TOTAL ACTIVO</strong></td>
+                <td class="numero"><strong>${{ total_activos|floatformat:2 }}</strong></td>
+            </tr>
+
+            <tr class="categoria-header">
+                <td>PASIVO</td>
+                <td class="numero"></td>
+            </tr>
+            <tr>
+                <td class="indent">Total de Pasivos</td>
+                <td class="numero">${{ total_pasivos|floatformat:2 }}</td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>TOTAL PASIVO</strong></td>
+                <td class="numero"><strong>${{ total_pasivos|floatformat:2 }}</strong></td>
+            </tr>
+
+            <tr class="categoria-header">
+                <td>PATRIMONIO</td>
+                <td class="numero"></td>
+            </tr>
+            <tr>
+                <td class="indent">Capital Contable (Código 3)</td>
+                <td class="numero">${{ total_capital|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td class="indent">Utilidad (Pérdida) del Ejercicio</td>
+                <td class="numero">${{ utilidad_del_ejercicio|floatformat:2 }}</td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>TOTAL PATRIMONIO</strong></td>
+                <td class="numero"><strong>${{ total_patrimonio|floatformat:2 }}</strong></td>
+            </tr>
+
+            <tr class="total-row">
+                <td><strong>TOTAL PASIVO + PATRIMONIO</strong></td>
+                <td class="numero"><strong>${{ total_pasivo_patrimonio|floatformat:2 }}</strong></td>
+            </tr>
+
+        </table>
+    </main>
+</body>
+</html>

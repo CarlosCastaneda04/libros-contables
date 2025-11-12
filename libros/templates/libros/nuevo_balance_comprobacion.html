@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Balance de Comprobación - {{ empresa.nombre }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v={% now 'U' %}">
+    <style>
+        /* Estilos específicos para reportes */
+        .report-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .report-table th, .report-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .report-table thead { border-top: 2px solid #333; border-bottom: 2px solid #333; }
+        .report-table tfoot { border-top: 2px solid #333; font-weight: bold; }
+        .numero { text-align: right; }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <a href="{% url 'reportes_financieros' %}" style="margin-bottom: 20px; display: inline-block;">← Volver a Reportes</a>
+
+        <div class="header" style="text-align: center; padding-bottom: 20px;">
+            <h1>{{ empresa.nombre }}</h1>
+            <h2>Balance de Comprobación</h2>
+        </div>
+
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre de la Cuenta</th>
+                    <th class="numero">Saldo Deudor</th>
+                    <th class="numero">Saldo Acreedor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cuenta in cuentas %}
+                    <tr>
+                        <td>{{ cuenta.codigo }}</td>
+                        <td>{{ cuenta.nombre }}</td>
+                        <td class="numero">${{ cuenta.saldo_deudor|floatformat:2 }}</td>
+                        <td class="numero">${{ cuenta.saldo_acreedor|floatformat:2 }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center;">No hay datos para esta empresa.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2" style="text-align: right; font-size: 1.1em;">SUMAS IGUALES:</td>
+                    <td class="numero" style="font-size: 1.1em;">${{ gran_total_deudor|floatformat:2 }}</td>
+                    <td class="numero" style="font-size: 1.1em;">${{ gran_total_acreedor|floatformat:2 }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </main>
+</body>
+</html>

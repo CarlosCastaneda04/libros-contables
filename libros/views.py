@@ -1,8 +1,10 @@
 # libros/views.py
+from django.forms import DecimalField
 from django.shortcuts import render, redirect, get_object_or_404 
 from django.db import transaction # Importamos transaction para seguridad
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Sum, F, Q, DecimalField, ExpressionWrapper
+from django.db.models.functions import Coalesce
 from .forms import AsientoDiarioForm
 from django.db.models import Sum
 from django.db.models import Max, IntegerField
@@ -404,3 +406,181 @@ def consultas(request):
         'asientos': asientos_encontrados
     }
     return render(request, 'libros/consultas.html', context) 
+
+# libros/views.py
+
+def reportes_financieros(request):
+    empresas = Empresa.objects.all()
+    context = {
+        'empresas': empresas
+    }
+    return render(request, 'libros/reportes_financieros.html', context)
+
+# 1. VISTA PARA EL NUEVO BALANCE DE COMPROBACIÓN
+def nuevo_balance_comprobacion(request, empresa_id):
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+    
+    cuentas = Cuenta.objects.filter(
+        movimientocontable__asiento_diario__empresa=empresa
+    ).annotate(
+        total_debe=Coalesce(Sum('movimientocontable__debe'), 0, output_field=DecimalField()),
+        total_haber=Coalesce(Sum('movimientocontable__haber'), 0, output_field=DecimalField())
+    ).annotate(
+        # --- AQUÍ ESTÁ LA CORRECCIÓN ---
+        saldo=ExpressionWrapper(
+            F('total_debe') - F('total_haber'),
+            output_field=DecimalField()
+        )
+        # --- FIN DE LA CORRECCIÓN ---
+    ).order_by('codigo')
+
+    gran_total_deudor = 0
+    gran_total_acreedor = 0
+    
+    cuentas_con_saldo = []
+    for cuenta in cuentas:
+        if cuenta.saldo != 0:
+            saldo_deudor = 0
+            saldo_acreedor = 0
+            
+            if cuenta.saldo > 0:
+                saldo_deudor = cuenta.saldo
+                gran_total_deudor += saldo_deudor
+            else:
+                saldo_acreedor = -cuenta.saldo
+                gran_total_acreedor += saldo_acreedor
+            
+            cuentas_con_saldo.append({
+                'codigo': cuenta.codigo,
+                'nombre': cuenta.nombre,
+                'saldo_deudor': saldo_deudor,
+                'saldo_acreedor': saldo_acreedor
+            })
+
+    context = {
+        'empresa': empresa,
+        'cuentas': cuentas_con_saldo,
+        'gran_total_deudor': gran_total_deudor,
+        'gran_total_acreedor': gran_total_acreedor,
+    }
+    
+    return render(request, 'libros/nuevo_balance_comprobacion.html', context)
+
+# 2. VISTA PARA EL ESTADO DE RESULTADOS (función vacía por ahora)
+# libros/views.py
+
+def estado_resultados(request, empresa_id):
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+
+    # 1. Obtener todas las cuentas de INGRESOS (Código 5)
+    cuentas_ingresos = Cuenta.objects.filter(
+        movimientocontable__asiento_diario__empresa=empresa,
+        codigo__startswith='5'
+    ).distinct().annotate(
+        total_debe=Coalesce(Sum('movimientocontable__debe'), 0, output_field=DecimalField()),
+        total_haber=Coalesce(Sum('movimientocontable__haber'), 0, output_field=DecimalField())
+    ).annotate(
+        saldo=F('total_haber') - F('total_debe') # Ingresos son de naturaleza Acreedora
+    ).order_by('codigo')
+
+    # 2. Obtener todas las cuentas de COSTOS Y GASTOS (Código 4)
+    cuentas_gastos = Cuenta.objects.filter(
+        movimientocontable__asiento_diario__empresa=empresa,
+        codigo__startswith='4'
+    ).distinct().annotate(
+        total_debe=Coalesce(Sum('movimientocontable__debe'), 0, output_field=DecimalField()),
+        total_haber=Coalesce(Sum('movimientocontable__haber'), 0, output_field=DecimalField())
+    ).annotate(
+        saldo=F('total_debe') - F('total_haber') # Gastos son de naturaleza Deudora
+    ).order_by('codigo')
+
+    # 3. Calcular Totales
+    total_ingresos = cuentas_ingresos.aggregate(total=Coalesce(Sum('saldo'), 0, output_field=DecimalField()))['total']
+    total_gastos = cuentas_gastos.aggregate(total=Coalesce(Sum('saldo'), 0, output_field=DecimalField()))['total']
+
+    utilidad = total_ingresos - total_gastos
+
+    context = {
+        'empresa': empresa,
+        'cuentas_ingresos': cuentas_ingresos,
+        'cuentas_gastos': cuentas_gastos,
+        'total_ingresos': total_ingresos,
+        'total_gastos': total_gastos,
+        'utilidad': utilidad,
+    }
+
+    return render(request, 'libros/estado_resultados.html', context)
+
+
+# 3. VISTA PARA EL BALANCE GENERAL (función vacía por ahora)
+def balance_general(request, empresa_id):
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+    
+    # --- 1. CÁLCULO DE LA UTILIDAD (Igual que en el Estado de Resultados) ---
+    
+    # Saldos de Ingresos (Acreedor: Haber - Debe)
+    ingresos = Cuenta.objects.filter(
+        movimientocontable__asiento_diario__empresa=empresa,
+        codigo__startswith='5'
+    ).annotate(
+        saldo=Coalesce(Sum('movimientocontable__haber'), 0, output_field=DecimalField()) - 
+              Coalesce(Sum('movimientocontable__debe'), 0, output_field=DecimalField())
+    ).aggregate(total=Coalesce(Sum('saldo'), 0, output_field=DecimalField()))['total']
+
+    # Saldos de Gastos (Deudor: Debe - Haber)
+    gastos = Cuenta.objects.filter(
+        movimientocontable__asiento_diario__empresa=empresa,
+        codigo__startswith='4'
+    ).annotate(
+        saldo=Coalesce(Sum('movimientocontable__debe'), 0, output_field=DecimalField()) - 
+              Coalesce(Sum('movimientocontable__haber'), 0, output_field=DecimalField())
+    ).aggregate(total=Coalesce(Sum('saldo'), 0, output_field=DecimalField()))['total']
+
+    utilidad_del_ejercicio = ingresos - gastos
+    
+    # --- 2. CÁLCULO DE ACTIVOS, PASIVOS Y CAPITAL ---
+
+    # Total Activos (Deudor: Debe - Haber)
+    total_activos = Cuenta.objects.filter(
+        movimientocontable__asiento_diario__empresa=empresa,
+        codigo__startswith='1'
+    ).annotate(
+        saldo=Coalesce(Sum('movimientocontable__debe'), 0, output_field=DecimalField()) - 
+              Coalesce(Sum('movimientocontable__haber'), 0, output_field=DecimalField())
+    ).aggregate(total=Coalesce(Sum('saldo'), 0, output_field=DecimalField()))['total']
+
+    # Total Pasivos (Acreedor: Haber - Debe)
+    total_pasivos = Cuenta.objects.filter(
+        movimientocontable__asiento_diario__empresa=empresa,
+        codigo__startswith='2'
+    ).annotate(
+        saldo=Coalesce(Sum('movimientocontable__haber'), 0, output_field=DecimalField()) - 
+              Coalesce(Sum('movimientocontable__debe'), 0, output_field=DecimalField())
+    ).aggregate(total=Coalesce(Sum('saldo'), 0, output_field=DecimalField()))['total']
+
+    # Total Capital (Acreedor: Haber - Debe)
+    total_capital = Cuenta.objects.filter(
+        movimientocontable__asiento_diario__empresa=empresa,
+        codigo__startswith='3'
+    ).annotate(
+        saldo=Coalesce(Sum('movimientocontable__haber'), 0, output_field=DecimalField()) - 
+              Coalesce(Sum('movimientocontable__debe'), 0, output_field=DecimalField())
+    ).aggregate(total=Coalesce(Sum('saldo'), 0, output_field=DecimalField()))['total']
+
+    # --- 3. CÁLCULO DE LA ECUACIÓN CONTABLE ---
+    total_patrimonio = total_capital + utilidad_del_ejercicio
+    total_pasivo_patrimonio = total_pasivos + total_patrimonio
+
+    context = {
+        'empresa': empresa,
+        'total_activos': total_activos,
+        'total_pasivos': total_pasivos,
+        'total_capital': total_capital,
+        'utilidad_del_ejercicio': utilidad_del_ejercicio,
+        'total_patrimonio': total_patrimonio,
+        'total_pasivo_patrimonio': total_pasivo_patrimonio,
+    }
+    
+    return render(request, 'libros/balance_general.html', context)
+
+# --- FIN DE LAS NUEVAS FUNCIONES ---
