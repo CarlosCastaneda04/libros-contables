@@ -6,6 +6,9 @@
     <title>Balance General - {{ empresa.nombre }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="{% static 'css/home.css' %}?v={% now 'U' %}">
+    <link rel="stylesheet" href="/css/balance_comprobacion.css">
+    <link rel="stylesheet" href="{% static 'css/balance_comprobacion.css' %}">
+
     <style>
         .report-table { width: 100%; font-size: 1.1em; }
         .report-table td { padding: 12px; }
@@ -29,8 +32,9 @@
 </head>
 <body>
     <main class="container">
-        <a href="{% url 'reportes_financieros' %}" style="margin-bottom: 20px; display: inline-block;">← Volver a Reportes</a>
-
+        <div class="nav-wrapper">
+          <a class="nav-link" href="{% url 'reportes_financieros' %}">← Volver a Reportes</a>
+        </div>
         <div class="header" style="text-align: center; padding-bottom: 20px;">
             <h1>{{ empresa.nombre }}</h1>
             <h2>Balance General</h2>

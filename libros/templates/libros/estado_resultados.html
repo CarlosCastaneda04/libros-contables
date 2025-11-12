@@ -6,6 +6,8 @@
     <title>Estado de Resultados - {{ empresa.nombre }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="{% static 'css/home.css' %}?v={% now 'U' %}">
+    <link rel="stylesheet" href="/css/balance_comprobacion.css">
+    <link rel="stylesheet" href="{% static 'css/balance_comprobacion.css' %}">
     <style>
         .report-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         .report-table th, .report-table td { padding: 10px; text-align: left; }
@@ -18,7 +20,9 @@
 </head>
 <body>
     <main class="container">
-        <a href="{% url 'reportes_financieros' %}" style="margin-bottom: 20px; display: inline-block;">← Volver a Reportes</a>
+        <div class="nav-wrapper">
+          <a class="nav-link" href="{% url 'reportes_financieros' %}">← Volver a Reportes</a>
+        </div>
 
         <div class="header" style="text-align: center; padding-bottom: 20px;">
             <h1>{{ empresa.nombre }}</h1>
